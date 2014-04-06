@@ -1,0 +1,21 @@
+[Unit]
+Description=Jabber Go Deamon (jagod)
+Documentation=https://github.com/shizeeg/jagod
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=nobody
+Group=nobody
+PIDFile=/run/jagod.pid
+
+ExecStart=/usr/local/bin/jagod -pid /run/jagod.pid -c /etc/jagod.cfg
+#StandardError=null
+#StandardOutput=journald
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+
