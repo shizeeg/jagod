@@ -7,46 +7,56 @@ The project in heavy development at the moment. Use at your own risk.
 
 The basic command syntax:
 
-<prefix><section> <command> [parameters]
+<pre>
+&lt;prefix&gt;&lt;section&gt; &lt;command&gt; [parameters]
+</pre>
 
 For example:
-
+<pre>
 !user ping jago
-
-<section> is any string at the moment so you can double the prefix like that:
-
+</pre>
+&lt;section&gt; is any string at the moment so you can double the prefix like that:
+<pre>
 !! ping jago
+</pre>
 
 Parameter can be nick (in conference) or jabber-server (domain). Without parameter ping requester.
 
 Some commands:
-
 ---------------------------------------------------------------------
 XEP-0045: Multi-User Chat
-
-!! join <conf@conference.server.tld>[/nick]
-password
+<pre>
+!! join &lt;conf@conference.server.tld&gt;[/nick]
+[password]
+</pre>
 
 Joins the conference with optional nick and password.
+
 ---------------------------------------------------------------------
 XEP-0199: XMPP Ping <http://xmpp.org/extensions/xep-0199.html>
 
+<pre>
 !! ping [nick]|[server.tld]
+</pre>
 
-ping server or occupant in conference.
+Ping server or occupant in conference.
 
 ---------------------------------------------------------------------
 XEP-0202: Entity Time <http://xmpp.org/extensions/xep-0202.html>
 
+<pre>
 !! version [nick]|[server.tld]
+</pre>
 
-send iq:version request to nick or server.
+Send iq:version request to nick or server.
 
 ---------------------------------------------------------------------
 XEP-0249: Direct MUC Invitations <http://xmpp.org/extensions/xep-0249.html>
 
-!! invite <nick>
+<pre>
+!! invite &lt;nick&gt;
 [reason]
+</pre>
 
 WARNING: This XEP is partially supported!
 
@@ -56,51 +66,62 @@ reason seems like do not work (why?).
 ---------------------------------------------------------------------
 Yandex Dictionary (Yandex API key required!)
 
-!! tr <lang1>-<lang2> <word>
+<pre>
+!! tr &lt;lang1&gt;-&lt;lang2&gt; &lt;word&gt;
+</pre>
 
-Translate <word> from <lang1> to <lang2>
+Translate &lt;word&gt; from &lt;lang1&gt; to &lt;lang2&gt;
 To see possible language pairs use:
 
+<pre>
 !! tr help
+</pre>
 
 ---------------------------------------------------------------------
 Yandex Spell
-
-!! spell <text>
-
+<pre>
+!! spell &lt;text&gt;
+</pre>
 spell-check <text> using yandex spellchecker. Now supports english, russian &
 ukrainian languages. You can set desired languages in config.
 
 ---------------------------------------------------------------------
 Automatically unescape urls in messsages. You can add to config:
 
+```cfg
 [cmd]
 disable-turn-url=true 
+```
 
 To disable this functionality.
 
 ---------------------------------------------------------------------
 Automatically translates cyrillic text typed in wrong layout. For example:
-
-<shizeeg> ghbdtn? vbh!
-<jago> привет, мир!
-
+<pre>
+&lt;shizeeg&gt; ghbdtn? vbh!
+&lt;jago&gt; привет, мир!
+</pre>
 Disabled by default. You can add to config:
 
+```cfg
 [cmd]
 disable-turn=false
+```
 
 To enable this functionality.
+
 ---------------------------------------------------------------------
 
-Official support conference: <xmpp:jagod@conference.jabber.org?join>
+Official support conference: <xmpp:jagod@conference.jabber.org?join> <br />
 Development room: <xmpp:dev@conference.net45.uk.to?join> // no connection from jabber.ru/xmpp.ru at the moment, sorry.
 
 ---------------------------------------------------------------------
 
 Many thanks goes to:
 
-Adam Langley - for wonderful github.com/agl/xmpp lib.
-speter       - for nice <http://code.google.com/p/gcfg> config parser.
+Go language team - for lovely programming language <http://golang.org/> <br />
+
+@Adam Langley - for wonderful <https://github.com/agl/xmpp> lib. <br />
+@speter       - for nice <http://code.google.com/p/gcfg> config parser. <br />
 
 and my CONTRIBUTORS!
