@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"github.com/shizeeg/xmpp"
 	"strings"
 )
@@ -8,7 +9,7 @@ import (
 type GluxiParser struct {
 	Prefix       string
 	IsForMe      bool
-	Index        int
+	index        int
 	Separator    string
 	OwnNick      string
 	NickSuffixes string
@@ -77,4 +78,31 @@ func (p *GluxiParser) Init(cmsg *xmpp.ClientMessage) error {
 	}
 	p.Separator = "" // ready for a new message
 	return nil
+}
+
+// Token returns token
+// You can use negative values to get tokens from last
+func (p *GluxiParser) Token(index int) (token string, err error) {
+	length := len(p.Tokens)
+	abs := func(n int) int {
+		if n < 0 {
+			return -n
+		}
+		return n
+	}
+	if length > abs(index) {
+		if index > 0 {
+			token = p.Tokens[index]
+			if len(strings.TrimSpace(token)) == 0 {
+				err = errors.New("Empty token!")
+			}
+			return
+		}
+		token = p.Tokens[length-index]
+		if len(strings.TrimSpace(token)) == 0 {
+			err = errors.New("Empty token")
+		}
+		return
+	}
+	return "", errors.New("Index out of bound!")
 }
