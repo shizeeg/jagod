@@ -10,7 +10,7 @@ User=nobody
 Group=nobody
 PIDFile=/run/jagod.pid
 
-ExecStart=/usr/local/bin/jagod -pid /run/jagod.pid -c /etc/jagod.cfg
+ExecStart=/usr/local/bin/jagod -p /run/jagod.pid -c /etc/jagod.cfg
 #StandardError=null
 #StandardOutput=journald
 Restart=on-failure

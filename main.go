@@ -23,7 +23,7 @@ var (
 
 func init() {
 	flag.StringVar(&cfgfile, "c", "/etc/jagod.cfg", "main configuration file.")
-	flag.StringVar(&pidfile, "pid", "/var/run/jagod.pid", "pidfile")
+	flag.StringVar(&pidfile, "p", "/var/run/jagod.pid", "pidfile")
 	flag.Parse()
 }
 
