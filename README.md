@@ -32,6 +32,14 @@ XEP-0045: Multi-User Chat
 
 Joins the conference with optional nick and password.
 
+<pre>
+!! leave [confjid]
+[status/reason]
+</pre>
+
+If not specified, leaves the current conference with optional reason message.
+You can also use "quit", "exit" or "part" instead.
+
 ---------------------------------------------------------------------
 XEP-0199: XMPP Ping <http://xmpp.org/extensions/xep-0199.html>
 

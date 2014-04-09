@@ -83,12 +83,13 @@ func (s *Session) processPresence(stanza *xmpp.MUCPresence) {
 				log.Println(err)
 			}
 			s.conferences[confJID] = conf
-			if occupant.Nick == conf.Parser.OwnNick {
+			// We has left conference
+			if stanza.IsCode("110") && occupant.Nick == conf.Parser.OwnNick {
 				conf, err := s.ConfDel(stanza)
 				if err != nil {
 					fmt.Println(err)
 				}
-				fmt.Printf("We're (%q) has quit from %q!\n", occupant.Nick, conf.JID)
+				fmt.Printf("We're %q has quit %q!\n", occupant.Nick, conf.JID)
 			}
 		}
 	case "": // empty <presence>
@@ -134,7 +135,7 @@ func (s *Session) processPresence(stanza *xmpp.MUCPresence) {
 		if err != nil {
 			fmt.Println(err)
 		}
-		fmt.Println("Conference:", conf.JID, "deleted!")
+
 		bareJid, nick := SplitJID(stanza.From)
 		switch stanza.Error.Any.Space + " " + stanza.Error.Any.Local {
 		case "urn:ietf:params:xml:ns:xmpp-stanzas conflict":
@@ -367,6 +368,7 @@ func (s *Session) ConfDel(stanza *xmpp.MUCPresence) (deleted Conference, err err
 		if conf.JID == fromJid {
 			deleted = conf
 			delete(s.conferences, jid)
+			log.Printf("Conference %q deleted!", conf.JID)
 			return
 		}
 	}

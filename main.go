@@ -217,6 +217,44 @@ func main() {
 								}
 							}
 						}
+
+					case "LEAVE", "EXIT", "QUIT", "PART":
+						if s.config.Cmd.DisableLeave {
+							continue
+						}
+						conf, ok := s.conferences[xmpp.RemoveResourceFromJid(st.From)]
+						param1, err := parser.Token(2)
+						param1 = xmpp.RemoveResourceFromJid(param1)
+						status := "I'm quit!"
+						if param2, err := parser.Token(3); err == nil {
+							status = param2
+						}
+						if !ok {
+							if err != nil {
+								s.Say(stanza, "I'm not in conference!", false)
+								continue
+							}
+							conf, ok = s.conferences[param1]
+							if !ok {
+								s.Say(stanza, "I'm not in "+param1, false)
+								continue
+							}
+						}
+						if err == nil {
+							tmp, ok := s.conferences[param1]
+							fmt.Println("JID: ", tmp.JID)
+							if !ok {
+								s.Say(stanza, "I'm not in "+param1, false)
+								continue
+							}
+						}
+
+						if err := s.conn.LeaveMUC(conf.JID+"/"+conf.Parser.OwnNick, status); err != nil {
+							s.Say(stanza, err.Error(), false)
+							continue
+						}
+						s.Say(stanza, "I'm quit from "+conf.JID, false)
+
 					case "INVITE": // FIXME: need to check XEP-0249 support first
 						if s.config.Cmd.DisableInvite {
 							continue
