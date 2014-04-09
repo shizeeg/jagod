@@ -135,20 +135,27 @@ func (s *Session) processPresence(stanza *xmpp.MUCPresence) {
 			fmt.Println(err)
 		}
 		fmt.Println("Conference:", conf.JID, "deleted!")
+		bareJid, nick := SplitJID(stanza.From)
 		switch stanza.Error.Any.Space + " " + stanza.Error.Any.Local {
 		case "urn:ietf:params:xml:ns:xmpp-stanzas conflict":
-			msg = fmt.Sprintf("Can't join conference %q, error %s: Nickname conflict!",
-				stanza.From, stanza.Error.Code)
+			msg = fmt.Sprintf("Can't join %q with nick %q. Error %s: Nickname conflict!",
+				bareJid, nick, stanza.Error.Code)
 		case "urn:ietf:params:xml:ns:xmpp-stanzas not-authorized":
 			msg = fmt.Sprintf("I can't join %q: %#v", conf.JID, stanza.Error)
+		case "urn:ietf:params:xml:ns:xmpp-stanzas forbidden":
+			msg = fmt.Sprintf("Can't join %q with nick %q. Error %s: I'm banned in this conference!",
+				bareJid, nick, stanza.Error.Code)
 		default:
 			msg = fmt.Sprintf("We got error presence: type: %q, code %q: %#v",
 				stanza.Error.Type, stanza.Error.Code, stanza.Error)
 		}
 
 		fmt.Println(msg)
-		adminjid := "admin@sidge.dyndns.org" // FIXME: replace with actual admin jid
-		s.conn.SendMUC(adminjid, "chat", msg)
+		for _, j := range s.config.Access.Owners {
+			if IsValidJID(j) {
+				s.conn.Send(j, msg)
+			}
+		}
 	default:
 		log.SetPrefix("WARNING: ")
 		if out, err := xml.Marshal(stanza); err == nil {
@@ -313,22 +320,17 @@ func (s *Session) processIQ(stanza *xmpp.ClientIQ) interface{} {
 
 // JoinMUC joins to a conference with nick & optional password
 // init & add Conference to the s.conferences map
-func (s *Session) JoinMUC(conf, nick, password string) {
-	jid := conf
+func (s *Session) JoinMUC(confJID, nick, password string) error {
+	bareJID := xmpp.RemoveResourceFromJid(confJID)
 	nick = strings.TrimSpace(nick)
 	if len(nick) == 0 {
 		nick = BOTNAME
 	}
-	if parts := strings.SplitN(conf, "/", 2); len(parts) == 2 {
-		jid = parts[0]
-		nick = parts[1]
-	}
 
 	for _, c := range s.conferences {
-		if c.JID == conf {
-			msg := fmt.Sprintf("I'm already in %q", conf)
-			fmt.Println(msg)
-			return
+		if c.JID == bareJID {
+			msg := fmt.Sprintf("I'm already in %q with nick %q", c.JID, c.Parser.OwnNick)
+			return errors.New(msg)
 		}
 	}
 
@@ -341,15 +343,21 @@ func (s *Session) JoinMUC(conf, nick, password string) {
 		NickSuffixes: s.config.MUC.NickSuffixes,
 		Prefix:       s.config.MUC.Prefix,
 	}
-	c := Conference{
-		JID:      jid,
+	conf := Conference{
+		JID:      bareJID,
 		Password: password,
 		Parser:   parser,
 	}
-	s.conferences[conf] = c
-	fmt.Printf("Conference: %#v added with password %q!\n", s.conferences[conf].JID, s.conferences[conf].Password)
-	s.conn.JoinMUC(c.JID, parser.OwnNick, c.Password)
-	return
+	s.conferences[bareJID] = conf
+	msg := fmt.Sprintf("Conference %q with nick %q added",
+		conf.JID, parser.OwnNick)
+	if len(conf.Password) > 0 {
+		msg += " and password: \"" + conf.Password
+	}
+
+	fmt.Println(msg + "!")
+	s.conn.JoinMUC(conf.JID, parser.OwnNick, conf.Password)
+	return nil
 }
 
 // ConfDel deletes conference

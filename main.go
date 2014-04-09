@@ -158,13 +158,13 @@ func main() {
 					if !ok {
 						continue
 					}
-					if !s.config.Cmd.Disable_turn_url && IsContainsURL(msg) {
+					if !s.config.Cmd.DisableTurnURL && IsContainsURL(msg) {
 						if link, err := url.QueryUnescape(msg); err == nil {
 							if strings.Count(msg, "%") > 3 {
 								s.conn.SendMUC(conf.JID, "groupchat", link)
 							}
 						}
-					} else if !s.config.Cmd.Disable_turn && IsWrongLayout(msg) {
+					} else if !s.config.Cmd.DisableTurn && IsWrongLayout(msg) {
 						// fmt.Printf("MSG WRONG LAYOUT: %q\n%#v", msg, st)
 						s.conn.SendMUC(conf.JID, "groupchat", Turn(msg))
 					}
@@ -210,9 +210,15 @@ func main() {
 						if len(parser.Tokens) == 4 { // user specify a password
 							password = parser.Tokens[3]
 						}
-						s.JoinMUC(conf, parser.OwnNick, password)
+						if err := s.JoinMUC(conf, parser.OwnNick, password); err != nil {
+							for _, j := range s.config.Access.Owners {
+								if IsValidJID(j) { // FIXME: temorary code.
+									s.conn.Send(j, err.Error())
+								}
+							}
+						}
 					case "INVITE": // FIXME: need to check XEP-0249 support first
-						if s.config.Cmd.Disable_invite {
+						if s.config.Cmd.DisableInvite {
 							continue
 						}
 						conf, ok := s.conferences[xmpp.RemoveResourceFromJid(st.From)]
@@ -231,7 +237,7 @@ func main() {
 						// fmt.Printf("INVITE: to %q\nconf: %q\npass: %q\nreason: %q\n", to, conf.JID, conf.Password, reason)
 						s.conn.DirectInviteMUC(to, conf.JID, conf.Password, reason)
 					case "SPELL":
-						if s.config.Cmd.Disable_spell {
+						if s.config.Cmd.DisableSpell {
 							continue
 						}
 						req := strings.Join(parser.Tokens[2:], " ")
@@ -241,7 +247,7 @@ func main() {
 						}
 						s.Say(stanza, text, false)
 					case "TR":
-						if s.config.Cmd.Disable_tr {
+						if s.config.Cmd.DisableTr {
 							continue
 						}
 						go func() {
@@ -265,7 +271,7 @@ func main() {
 						}()
 
 					case "VERSION":
-						if s.config.Cmd.Disable_version {
+						if s.config.Cmd.DisableVersion {
 							continue
 						}
 						fmt.Printf("TONICK: %q\n", toNick)
@@ -278,7 +284,7 @@ func main() {
 						s.timeouts[cookie] = time.Now().Add(5 * time.Second)
 						go s.awaitVersionReply(replyChan, stanza)
 					case "PING":
-						if s.config.Cmd.Disable_ping {
+						if s.config.Cmd.DisablePing {
 							continue
 						}
 						replyChan, cookie, err := s.conn.SendIQ(toJID, "get", xmpp.PingQuery{})
