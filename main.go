@@ -242,11 +242,11 @@ func main() {
 						}
 						if err == nil {
 							tmp, ok := s.conferences[param1]
-							fmt.Println("JID: ", tmp.JID)
 							if !ok {
 								s.Say(stanza, "I'm not in "+param1, false)
 								continue
 							}
+							conf = tmp
 						}
 
 						if err := s.conn.LeaveMUC(conf.JID+"/"+conf.Parser.OwnNick, status); err != nil {
