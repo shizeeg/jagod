@@ -84,7 +84,7 @@ func (s *Session) processPresence(stanza *xmpp.MUCPresence) {
 			}
 			s.conferences[confJID] = conf
 			// We has left conference
-			if stanza.IsCode("110") && occupant.Nick == conf.Parser.OwnNick {
+			if occupant.Nick == conf.Parser.OwnNick {
 				conf, err := s.ConfDel(stanza)
 				if err != nil {
 					fmt.Println(err)
