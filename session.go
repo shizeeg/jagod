@@ -232,8 +232,7 @@ func (s *Session) awaitVersionReply(ch <-chan xmpp.Stanza, reqFrom xmpp.Stanza) 
 		msg = "no data in reply to iq:version!"
 	}
 	msg = fmt.Sprintf("Version reply from %q: %s", fromUser, msg)
-	fmt.Println(msg)
-	fmt.Printf("From: %q\nTo: %q\n", reply.From, reply.To)
+	fmt.Printf("From: %q\nTo: %q\nMsg: %q", reply.From, reply.To, msg)
 	s.Say(reqFrom, msg, false)
 }
 
@@ -363,14 +362,12 @@ func (s *Session) JoinMUC(confJID, nick, password string) error {
 
 // ConfDel deletes conference
 func (s *Session) ConfDel(stanza *xmpp.MUCPresence) (deleted Conference, err error) {
-	fromJid := xmpp.RemoveResourceFromJid(stanza.From)
-	for jid, conf := range s.conferences {
-		if conf.JID == fromJid {
-			deleted = conf
-			delete(s.conferences, jid)
-			log.Printf("Conference %q deleted!", conf.JID)
-			return
-		}
+	bareJID := xmpp.RemoveResourceFromJid(stanza.From)
+	if conf, ok := s.conferences[bareJID]; ok {
+		deleted = conf
+		delete(s.conferences, conf.JID)
+		log.Printf("Conference %q deleted!", conf.JID)
+		return
 	}
-	return Conference{}, errors.New("No such conference! " + fromJid)
+	return Conference{}, errors.New("No such conference! " + bareJID)
 }
