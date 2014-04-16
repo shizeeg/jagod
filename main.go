@@ -116,6 +116,26 @@ func main() {
 	ticker := time.NewTicker(1 * time.Second)
 	pingticker := time.NewTicker(s.config.Account.Keepalive * time.Second)
 
+	fmt.Println(s.config.MUC.Autojoins)
+	for _, joinTo := range s.config.MUC.Autojoins {
+		confJID := joinTo
+		pass := ""
+		if tmp := strings.SplitN(joinTo, ",", -1); len(tmp) == 2 {
+			confJID = strings.TrimSpace(tmp[0])
+			pass = strings.TrimSpace(tmp[1])
+		}
+		bareJID, nick := SplitJID(confJID)
+		if len(nick) == 0 {
+			nick = parser.OwnNick
+		}
+		if err := s.JoinMUC(bareJID, nick, pass); err != nil {
+			for _, j := range s.config.Access.Owners {
+				if IsValidJID(j) { // FIXME: temorary code.
+					s.conn.Send(j, "autojoin: "+err.Error())
+				}
+			}
+		}
+	}
 	for {
 		select {
 		case now := <-ticker.C:

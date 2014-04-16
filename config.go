@@ -46,10 +46,11 @@ type Config struct {
 		Owners []string `gcfg:"owner"`
 	}
 	MUC struct {
-		Nick         string `gcfg:"nick"`
-		Prefix       string `gcfg:"prefix"`
-		NickSuffixes string `gcfg:"nick_suffixes"`
-		LeaveMinJIDs string `gcfg:"leave_minjids"`
+		Nick         string   `gcfg:"nick"`
+		Prefix       string   `gcfg:"prefix"`
+		NickSuffixes string   `gcfg:"nick_suffixes"`
+		LeaveMinJIDs string   `gcfg:"leave_minjids"`
+		Autojoins    []string `gcfg:"autojoin"`
 	}
 	Database struct {
 		Type     string `gcfg:"type"`
