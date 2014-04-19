@@ -252,17 +252,60 @@ func (s *Session) processIQ(stanza *xmpp.ClientIQ) interface{} {
 	case "urn:xmpp:ping ping":
 		fmt.Printf("URN:XMPP:PING: %#v", stanza)
 		return xmpp.EmptyReply{}
+
+	case "urn:xmpp:time time":
+		tzo, utc := GetTimeDate()
+		fmt.Println("urn:xmpp:time: ", utc, tzo)
+		return xmpp.TimeReply{TZO: tzo, UTC: utc}
+
 	case "http://jabber.org/protocol/disco#info query":
-		return xmpp.DiscoveryReply{
+		reply := xmpp.DiscoveryReply{
+			Node: NODE, // add verification string later
 			Identities: []xmpp.DiscoveryIdentity{
 				{
 					Category: "client",
 					Type:     "pc",
 					Name:     BOTNAME,
-					// Name:     s.config.Account,
+				},
+			},
+			Features: []xmpp.DiscoveryFeature{
+				{
+					Var: "http://jabber.org/protocol/caps",
+				},
+				{
+					Var: "http://jabber.org/disco#info",
+				},
+				{
+					Var: "http://jabber.org/protocol/muc",
+				},
+				{
+					Var: "jabber:iq:version",
+				},
+				{
+					Var: "urn:xmpp:ping",
+				},
+				{
+					Var: "urn:xmpp:time",
+				},
+				{
+					Var: "jabber:iq:time",
 				},
 			},
 		}
+		if vstr, err := reply.VerificationString(); err == nil {
+			fmt.Printf("disco#info: %q\n", vstr)
+			reply.Node = NODE + vstr
+		}
+		return reply
+
+	case "jabber:iq:time query":
+		tz, utc, disp := GetTimeDateOld()
+		return xmpp.TimeReplyOld{
+			UTC:     utc,
+			TZ:      tz,
+			Display: disp,
+		}
+
 	case "jabber:iq:version query":
 		osver, gover := Version()
 		reply := xmpp.VersionReply{
