@@ -20,6 +20,7 @@ type Commands struct {
 	DisableTurnURL bool `gcfg:"disable_turn_url"`
 	DisableVersion bool `gcfg:"disable_version"`
 	DisableLeave   bool `gcfg:"disable_leave"`
+	DisableTime    bool `gcfg:"disable_time"`
 }
 
 // Config configuration file structure

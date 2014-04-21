@@ -236,6 +236,52 @@ func (s *Session) awaitVersionReply(ch <-chan xmpp.Stanza, reqFrom xmpp.Stanza) 
 	s.Say(reqFrom, msg, false)
 }
 
+func (s *Session) awaitTimeReply(ch <-chan xmpp.Stanza, reqFrom xmpp.Stanza) {
+	stanza, ok := <-ch
+	reply, ok := stanza.Value.(*xmpp.ClientIQ)
+	if !ok {
+		return
+	}
+	bareJID, nick := SplitJID(reply.From)
+	fromUser := reply.From
+	replyType := "chat"
+	if len(nick) > 0 {
+		if conf, ok := s.conferences[bareJID]; ok {
+			replyType = "groupchat"
+			if i, ok := conf.NickIndex(nick); ok {
+				fromUser = conf.Occupants[i].Nick
+			}
+		}
+	}
+	_ = fromUser
+	_ = replyType
+
+	if reply.Type == "error" {
+		msg := fmt.Sprintf("%s %s", reply.Error.Code, reply.Error.Any.Local)
+		if len(reply.Error.Text) > 0 {
+			msg = fmt.Sprintf("%s %s", reply.Error.Code, reply.Error.Text)
+		}
+		s.Say(reqFrom, msg, false)
+		return
+
+	} else if reply.Type != "result" {
+		msg := fmt.Sprintf("Version request to %q resulted in response with unknown type: %v", nick, reply.Type)
+		s.Say(reqFrom, msg, false)
+		return
+	}
+
+	buf := bytes.NewBuffer(reply.Query)
+
+	var timeReply xmpp.TimeReply
+	if err := xml.NewDecoder(buf).Decode(&timeReply); err != nil {
+		msg := fmt.Sprintf("Failed to parse time reply from %q: %v", nick, err)
+		s.Say(reqFrom, msg, false)
+		return
+	}
+	msg := fmt.Sprintf("It's %s on %s's clock.", timeReply.String(), fromUser)
+	s.Say(reqFrom, msg, false)
+}
+
 func (s *Session) processIQ(stanza *xmpp.ClientIQ) interface{} {
 	buf := bytes.NewBuffer(stanza.Query)
 	parser := xml.NewDecoder(buf)

@@ -3,6 +3,8 @@ package main
 import (
 	"strings"
 	"time"
+
+	"github.com/shizeeg/xmpp"
 )
 
 // SplitJID returns barejid and resource from FullJID
@@ -33,19 +35,19 @@ func IsValidJID(jid string) bool {
 // GetTImeDate return timezone (tzo) and time (utc) as defined in XEP-0202
 // http://xmpp.org/extensions/xep-0202.html
 func GetTimeDate() (tzo, utc string) {
-	TimeFormat := "2006-01-02T15:04:05Z"
 	now := time.Now()
-	utc = now.UTC().Format(TimeFormat)
+	utc = now.UTC().Format(xmpp.TimeTZ)
 	tzo = now.Format("-07:00")
 	return
 }
+
 // GetTimeOld returns timezone, datetime and display suggestion as defined in
 // XEP-0090 http://xmpp.org/extensions/xep-0090.html
 func GetTimeDateOld() (tz, utc, display string) {
-	TimeFormat := "20060102T15:04:05"
 	now := time.Now()
-	utc = now.UTC().Format(TimeFormat)
+	utc = now.UTC().Format(xmpp.TimeOld)
 	display = now.Format(time.RubyDate)
 	tz = now.Format("MST")
 	return
 }
+

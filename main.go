@@ -341,6 +341,17 @@ func main() {
 						// FIXME: move it to the s.Conferences[jid].timeouts[cookie]
 						s.timeouts[cookie] = time.Now().Add(5 * time.Second)
 						go s.awaitVersionReply(replyChan, stanza)
+					case "TIME":
+						if s.config.Cmd.DisableTime {
+							continue
+						}
+						replyChan, cookie, err := s.conn.SendIQ(toJID, "get", xmpp.TimeQuery{})
+						if err != nil {
+							fmt.Printf("Error sending urn:xmpp:time request %#v\n, %d\n", err, cookie)
+						}
+						s.timeouts[cookie] = time.Now().Add(5 * time.Minute)
+						go s.awaitTimeReply(replyChan, stanza)
+
 					case "PING":
 						if s.config.Cmd.DisablePing {
 							continue

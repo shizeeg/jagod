@@ -41,6 +41,15 @@ If not specified, leaves the current conference with optional reason message.
 You can also use "quit", "exit" or "part" instead.
 
 ---------------------------------------------------------------------
+XEP-0092: Software Version <http://xmpp.org/extensions/xep-0092.html>
+
+<pre>
+!! version [nick]|[server.tld]
+</pre>
+
+Send iq:version request to nick or server.
+
+---------------------------------------------------------------------
 XEP-0199: XMPP Ping <http://xmpp.org/extensions/xep-0199.html>
 
 <pre>
@@ -53,10 +62,10 @@ Ping server or occupant in conference.
 XEP-0202: Entity Time <http://xmpp.org/extensions/xep-0202.html>
 
 <pre>
-!! version [nick]|[server.tld]
+!! time [nick]|[server.tld]
 </pre>
 
-Send iq:version request to nick or server.
+Send urn:xmpp:time request to nick or server.
 
 ---------------------------------------------------------------------
 XEP-0249: Direct MUC Invitations <http://xmpp.org/extensions/xep-0249.html>
