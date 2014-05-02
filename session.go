@@ -441,7 +441,7 @@ func (s *Session) JoinMUC(confJID, nick, password string) error {
 	msg := fmt.Sprintf("Conference %q with nick %q added",
 		conf.JID, parser.OwnNick)
 	if len(conf.Password) > 0 {
-		msg += " and password: \"" + conf.Password
+		msg += " and password: " + conf.Password
 	}
 
 	fmt.Println(msg + "!")

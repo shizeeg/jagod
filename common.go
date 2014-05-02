@@ -47,7 +47,7 @@ func GetTimeDateOld() (tz, utc, display string) {
 	now := time.Now()
 	utc = now.UTC().Format(xmpp.TimeOld)
 	display = now.Format(time.RubyDate)
-	tz = now.Format("MST")
+	tz, _ = now.Zone()
 	return
 }
 
