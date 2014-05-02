@@ -294,6 +294,15 @@ func main() {
 						// FIXME: resolve jid from nick (db stuff)
 						// fmt.Printf("INVITE: to %q\nconf: %q\npass: %q\nreason: %q\n", to, conf.JID, conf.Password, reason)
 						s.conn.DirectInviteMUC(to, conf.JID, conf.Password, reason)
+					case "WEATHER", "GISMETEO":
+						if s.config.Cmd.DisableWeather {
+							continue
+						}
+						if len(parser.Tokens) < 3 {
+							s.Say(stanza, "!<sect> weather <city>", false)
+							continue
+						}
+						go s.RunPlugin(stanza, "gismeteo", parser.Tokens[2:]...)
 					case "SPELL":
 						if s.config.Cmd.DisableSpell {
 							continue

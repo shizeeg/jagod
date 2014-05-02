@@ -21,6 +21,7 @@ type Commands struct {
 	DisableVersion bool `gcfg:"disable_version"`
 	DisableLeave   bool `gcfg:"disable_leave"`
 	DisableTime    bool `gcfg:"disable_time"`
+	DisableWeather bool `gcfg:"disable_weather"`
 }
 
 // Config configuration file structure
