@@ -1,6 +1,7 @@
 package main
 
 var (
-	BOTNAME    = "jago"
-	BOTVERSION = "0.0.50 (GIT 7c9a7b0 (2014-04-04))"
+	BOTNAME    = "jagod"
+	NODE       = "https://github.com/shizeeg/jagod"
+	BOTVERSION = "0.0.17 (GIT 46a34bf (2014-05-02))"
 )
