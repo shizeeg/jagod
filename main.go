@@ -99,7 +99,19 @@ func main() {
 		return
 	}
 	s.conn = conn
-	s.conn.SignalPresence("")
+	// s.conn.SignalPresence("")
+	ver, _ := s.GetInfoReply().VerificationString()
+
+	s.conn.SendStanza(
+		xmpp.ClientPresence{
+			Lang: s.config.Account.Lang,
+			Caps: &xmpp.ClientCaps{
+				Hash: "sha-1",
+				Node: NODE,
+				Ver: ver,
+			},
+		},
+	)
 
 	_, _, err = s.conn.RequestRoster()
 	parser := GluxiParser{

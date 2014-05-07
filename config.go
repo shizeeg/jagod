@@ -37,6 +37,7 @@ type Config struct {
 		Server            string        `gcfg:"server"`
 		Port              string        `gcfg:"port"`
 		Resource          string        `gcfg:"resource"`
+		Lang              string        `gcfg:"lang"`
 		FingerprintSHA256 string        `gcfg:"fingerprintsha256"`
 		Trusted           bool          `gcfg:"Trusted"`
 		SkipTLS           bool          `gcfg:"SkipTLS"`

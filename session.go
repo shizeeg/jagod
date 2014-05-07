@@ -49,6 +49,33 @@ func (s *Session) Say(stanza interface{}, msg string, private bool) (err error) 
 	return s.conn.SendMUC(to, typ, msg)
 }
 
+// GetInfoReply returns xmpp.DiscoveryReply with Identity and supported features.
+func (s *Session) GetInfoReply() *xmpp.DiscoveryReply {
+	reply := xmpp.DiscoveryReply{
+		Node: NODE, // add verification string later
+		Identities: []xmpp.DiscoveryIdentity{
+			{
+				Category: "client",
+				Type:     "pc",
+				Name:     BOTNAME,
+			},
+		},
+		Features: []xmpp.DiscoveryFeature{
+			{Var: "http://jabber.org/protocol/caps"},
+			{Var: "http://jabber.org/disco#info"},
+			{Var: "http://jabber.org/protocol/muc"},
+			{Var: "jabber:iq:version"},
+			{Var: "urn:xmpp:ping"},
+			{Var: "urn:xmpp:time"},
+			{Var: "jabber:iq:time"},
+		},
+	}
+	if vstr, err := reply.VerificationString(); err == nil {
+		reply.Node = NODE + "#" + vstr
+	}
+	return &reply
+}
+
 // readMessages reads stanza from channel and returns it
 func (s *Session) readMessages(stanzaChan chan<- xmpp.Stanza) {
 	defer close(stanzaChan)
@@ -304,45 +331,11 @@ func (s *Session) processIQ(stanza *xmpp.ClientIQ) interface{} {
 		fmt.Println("urn:xmpp:time: ", utc, tzo)
 		return xmpp.TimeReply{TZO: tzo, UTC: utc}
 
+	case "http://jabber.org/protocol/disco#items query":
+		return xmpp.DiscoInfoReply{}
+
 	case "http://jabber.org/protocol/disco#info query":
-		reply := xmpp.DiscoveryReply{
-			Node: NODE, // add verification string later
-			Identities: []xmpp.DiscoveryIdentity{
-				{
-					Category: "client",
-					Type:     "pc",
-					Name:     BOTNAME,
-				},
-			},
-			Features: []xmpp.DiscoveryFeature{
-				{
-					Var: "http://jabber.org/protocol/caps",
-				},
-				{
-					Var: "http://jabber.org/disco#info",
-				},
-				{
-					Var: "http://jabber.org/protocol/muc",
-				},
-				{
-					Var: "jabber:iq:version",
-				},
-				{
-					Var: "urn:xmpp:ping",
-				},
-				{
-					Var: "urn:xmpp:time",
-				},
-				{
-					Var: "jabber:iq:time",
-				},
-			},
-		}
-		if vstr, err := reply.VerificationString(); err == nil {
-			fmt.Printf("disco#info: %q\n", vstr)
-			reply.Node = NODE + vstr
-		}
-		return reply
+		return s.GetInfoReply()
 
 	case "jabber:iq:time query":
 		tz, utc, disp := GetTimeDateOld()
@@ -445,8 +438,27 @@ func (s *Session) JoinMUC(confJID, nick, password string) error {
 	}
 
 	fmt.Println(msg + "!")
-	s.conn.JoinMUC(conf.JID, parser.OwnNick, conf.Password)
-	return nil
+	ver, err := s.GetInfoReply().VerificationString()
+	if err != nil {
+		log.Println(err)
+	}
+	x := xmpp.X{
+		XMLName:  xml.Name{Space: xmpp.NsMUC, Local: "x"},
+		Password: conf.Password,
+		History:  xmpp.History{MaxChars: 1},
+	}
+	st := xmpp.MUCPresence{
+		Lang: s.config.Account.Lang,
+		To:   conf.JID + "/" + parser.OwnNick,
+		Ex:   x,
+		Caps: &xmpp.ClientCaps{
+			Hash: "sha-1",
+			Node: NODE,
+			Ver:  ver,
+		},
+	}
+	fmt.Printf("MP: %+v\n", st)
+	return s.conn.SendStanza(st)
 }
 
 // ConfDel deletes conference
