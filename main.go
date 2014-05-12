@@ -183,6 +183,9 @@ func main() {
 
 			switch st := stanza.Value.(type) {
 			case *xmpp.ClientMessage:
+				if st.IsDelayed() { // ignore history (delayed messages)
+					continue
+				}
 				msg := st.Body
 				if st.Type == "groupchat" && !strings.HasSuffix(st.From, parser.OwnNick) {
 					conf, ok := s.conferences[xmpp.RemoveResourceFromJid(st.From)]

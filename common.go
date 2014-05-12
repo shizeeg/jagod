@@ -1,9 +1,11 @@
 package main
 
 import (
+	"os"
 	"strings"
 	"time"
 
+	"encoding/xml"
 	"github.com/shizeeg/xmpp"
 )
 
@@ -49,5 +51,12 @@ func GetTimeDateOld() (tz, utc, display string) {
 	display = now.Format(time.RubyDate)
 	tz, _ = now.Zone()
 	return
+}
+
+// PrintXML dumps xml to stderr
+func PrintXML(s interface{}) error {
+	enc := xml.NewEncoder(os.Stderr)
+	enc.Indent("", "    ")
+	return enc.Encode(s)
 }
 

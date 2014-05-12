@@ -127,6 +127,7 @@ func (s *Session) processPresence(stanza *xmpp.MUCPresence) {
 		if len(stanza.X) > 1 {
 			fmt.Printf("SECOND X: %#v\n\n", stanza.X[1])
 		}
+		fmt.Printf("%#v", stanza.X)
 		switch x.XMLName.Space + " " + x.XMLName.Local {
 		case "http://jabber.org/protocol/muc#user x":
 			fromJid := xmpp.RemoveResourceFromJid(stanza.From)
@@ -442,22 +443,22 @@ func (s *Session) JoinMUC(confJID, nick, password string) error {
 	if err != nil {
 		log.Println(err)
 	}
-	x := xmpp.X{
-		XMLName:  xml.Name{Space: xmpp.NsMUC, Local: "x"},
-		Password: conf.Password,
-		History:  xmpp.History{MaxChars: 1},
-	}
 	st := xmpp.MUCPresence{
 		Lang: s.config.Account.Lang,
 		To:   conf.JID + "/" + parser.OwnNick,
-		Ex:   x,
 		Caps: &xmpp.ClientCaps{
 			Hash: "sha-1",
 			Node: NODE,
 			Ver:  ver,
 		},
+		X: []*xmpp.X{&xmpp.X{
+			XMLName:  xml.Name{Space: "http://jabber.org/protocol/muc", Local: "x"},
+			Password: conf.Password,
+			History:  &xmpp.History{MaxChars: "0"}}},
 	}
-	fmt.Printf("MP: %+v\n", st)
+	// fmt.Println("DEBUG: JoinMUC: {")
+	// PrintXML(st)
+	// fmt.Println("\n}")
 	return s.conn.SendStanza(st)
 }
 
