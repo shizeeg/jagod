@@ -74,7 +74,7 @@ func main() {
 	if CityName == "" {
 		CityName = fmt.Sprint(weather.Report.Town.Sname)
 	}
-	fmt.Printf(prefix+": %s (%d) %d°N, %d°E, \n",
+	fmt.Printf(prefix+": %s (%d) %d°N, %d°E\n",
 		CityName,
 		weather.Report.Town.Index,
 		weather.Report.Town.Latitude,
