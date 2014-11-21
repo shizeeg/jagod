@@ -1,4 +1,5 @@
 // +build linux !windows
+// +build !freebsd
 
 package main
 
