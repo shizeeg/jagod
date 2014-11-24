@@ -266,29 +266,29 @@ func main() {
 						}
 						if !ok {
 							if err != nil {
-								s.Say(stanza, "I'm not in conference!", false)
+								s.Respond(stanza, "I'm not in conference!", false)
 								continue
 							}
 							conf, ok = s.conferences[param1]
 							if !ok {
-								s.Say(stanza, "I'm not in "+param1, false)
+								s.Respond(stanza, "I'm not in "+param1, false)
 								continue
 							}
 						}
 						if err == nil {
 							tmp, ok := s.conferences[param1]
 							if !ok {
-								s.Say(stanza, "I'm not in "+param1, false)
+								s.Respond(stanza, "I'm not in "+param1, false)
 								continue
 							}
 							conf = tmp
 						}
 
 						if err := s.conn.LeaveMUC(conf.JID+"/"+conf.Parser.OwnNick, status); err != nil {
-							s.Say(stanza, err.Error(), false)
+							s.Respond(stanza, err.Error(), false)
 							continue
 						}
-						s.Say(stanza, "I'm quit from "+conf.JID, false)
+						s.Respond(stanza, "I'm quit from "+conf.JID, false)
 
 					case "INVITE": // FIXME: need to check XEP-0249 support first
 						if s.config.Cmd.DisableInvite {
@@ -314,10 +314,10 @@ func main() {
 							continue
 						}
 						if len(parser.Tokens) < 3 {
-							s.Say(stanza, "!<sect> weather <city>", false)
+							s.Respond(stanza, "!<sect> weather <city>", false)
 							continue
 						}
-						go s.RunPlugin(stanza, "gismeteo", parser.Tokens[2:]...)
+						go s.RunPlugin(stanza, "gismeteo", true, parser.Tokens[2:]...)
 					case "SPELL":
 						if s.config.Cmd.DisableSpell {
 							continue
@@ -327,7 +327,7 @@ func main() {
 						if len(text) == 0 {
 							text = "no responce from yandex.ru"
 						}
-						s.Say(stanza, text, false)
+						s.Respond(stanza, text, false)
 					case "TR":
 						if s.config.Cmd.DisableTr {
 							continue
@@ -349,7 +349,7 @@ func main() {
 							if len(text) == 0 {
 								text = "no responce from yandex.ru"
 							}
-							s.Say(stanza, "http://api.yandex.ru/dictionary/\n"+text, false)
+							s.Respond(stanza, "http://api.yandex.ru/dictionary/\n"+text, false)
 						}()
 
 					case "VERSION":
@@ -404,7 +404,7 @@ func main() {
 									msg = fmt.Sprintf("pong from %q after %.3f seconds.", from, elapsed.Seconds())
 
 								}
-								s.Say(stanza, msg, false)
+								s.Respond(stanza, msg, false)
 							}
 						}(cookie)
 					}
@@ -422,7 +422,7 @@ func main() {
 				}
 				if err := s.conn.SendIQReply(st.From, "result", st.Id, reply); err != nil {
 					msg := fmt.Sprintf("Failed to send IQ message: %#v", err)
-					s.Say(stanza, msg, false)
+					s.Respond(stanza, msg, false)
 				}
 			case *xmpp.MUCPresence:
 				s.processPresence(st)

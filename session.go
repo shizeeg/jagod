@@ -22,7 +22,14 @@ type Session struct {
 	timeouts map[xmpp.Cookie]time.Time
 }
 
-func (s *Session) Say(stanza interface{}, msg string, private bool) (err error) {
+// Respond is a wrapper around Say(stanza, msg, true...)
+func (s *Session) Respond(stanza interface{}, msg string, private bool) (err error) {
+	return s.Say(stanza, msg, true, private)
+}
+
+// Say sends reply to a request from roster or MUC. You can set private
+// (in MUC) or tonick to prefix message with a nick who have sent request
+func (s *Session) Say(stanza interface{}, msg string, tonick, private bool) (err error) {
 	typ := "chat"
 	var to string
 	stnza, ok := stanza.(xmpp.Stanza)
@@ -36,7 +43,9 @@ func (s *Session) Say(stanza interface{}, msg string, private bool) (err error) 
 		if !private && typ == "groupchat" {
 			var nick string
 			to, nick = SplitJID(st.From)
-			msg = nick + ": " + msg
+			if tonick {
+				msg = nick + ": " + msg
+			}
 		}
 		if private {
 			typ = "chat"
@@ -61,13 +70,13 @@ func (s *Session) GetInfoReply() *xmpp.DiscoveryReply {
 			},
 		},
 		Features: []xmpp.DiscoveryFeature{
-			{Var: "http://jabber.org/protocol/caps"},
 			{Var: "http://jabber.org/disco#info"},
+			{Var: "http://jabber.org/protocol/caps"},
 			{Var: "http://jabber.org/protocol/muc"},
+			{Var: "jabber:iq:time"},
 			{Var: "jabber:iq:version"},
 			{Var: "urn:xmpp:ping"},
 			{Var: "urn:xmpp:time"},
-			{Var: "jabber:iq:time"},
 		},
 	}
 	if vstr, err := reply.VerificationString(); err == nil {
@@ -130,8 +139,11 @@ func (s *Session) processPresence(stanza *xmpp.MUCPresence) {
 		fmt.Printf("%#v", stanza.X)
 		switch x.XMLName.Space + " " + x.XMLName.Local {
 		case "http://jabber.org/protocol/muc#user x":
-			fromJid := xmpp.RemoveResourceFromJid(stanza.From)
-			//	fromJid = strings.ToLower(fromJid)
+			// fromJid := xmpp.RemoveResourceFromJid(stanza.From)
+			// fromJid = strings.ToLower(fromJid)
+			// FIXME: need for joined occupant nick catching
+			fromJid, _ := SplitJID(stanza.From)
+
 			for jid, conf := range s.conferences {
 				if !conf.Joined && conf.JID == fromJid {
 					conf.Joined = true
@@ -229,12 +241,12 @@ func (s *Session) awaitVersionReply(ch <-chan xmpp.Stanza, reqFrom xmpp.Stanza) 
 		if len(reply.Error.Text) > 0 {
 			msg = fmt.Sprintf("%s %s", reply.Error.Code, reply.Error.Text)
 		}
-		s.Say(reqFrom, msg, false)
+		s.Respond(reqFrom, msg, false)
 		return
 
 	} else if reply.Type != "result" {
 		msg := fmt.Sprintf("Version request to %q resulted in response with unknown type: %v", nick, reply.Type)
-		s.Say(reqFrom, msg, false)
+		s.Respond(reqFrom, msg, false)
 		return
 	}
 
@@ -243,7 +255,7 @@ func (s *Session) awaitVersionReply(ch <-chan xmpp.Stanza, reqFrom xmpp.Stanza) 
 	var versionReply xmpp.VersionReply
 	if err := xml.NewDecoder(buf).Decode(&versionReply); err != nil {
 		msg := fmt.Sprintf("Failed to parse version reply from %q: %v", nick, err)
-		s.Say(reqFrom, msg, false)
+		s.Respond(reqFrom, msg, false)
 		return
 	}
 	var msg string
@@ -261,7 +273,7 @@ func (s *Session) awaitVersionReply(ch <-chan xmpp.Stanza, reqFrom xmpp.Stanza) 
 	}
 	msg = fmt.Sprintf("Version reply from %q: %s", fromUser, msg)
 	fmt.Printf("From: %q\nTo: %q\nMsg: %q", reply.From, reply.To, msg)
-	s.Say(reqFrom, msg, false)
+	s.Respond(reqFrom, msg, false)
 }
 
 func (s *Session) awaitTimeReply(ch <-chan xmpp.Stanza, reqFrom xmpp.Stanza) {
@@ -289,12 +301,12 @@ func (s *Session) awaitTimeReply(ch <-chan xmpp.Stanza, reqFrom xmpp.Stanza) {
 		if len(reply.Error.Text) > 0 {
 			msg = fmt.Sprintf("%s %s", reply.Error.Code, reply.Error.Text)
 		}
-		s.Say(reqFrom, msg, false)
+		s.Respond(reqFrom, msg, false)
 		return
 
 	} else if reply.Type != "result" {
 		msg := fmt.Sprintf("Version request to %q resulted in response with unknown type: %v", nick, reply.Type)
-		s.Say(reqFrom, msg, false)
+		s.Respond(reqFrom, msg, false)
 		return
 	}
 
@@ -303,11 +315,11 @@ func (s *Session) awaitTimeReply(ch <-chan xmpp.Stanza, reqFrom xmpp.Stanza) {
 	var timeReply xmpp.TimeReply
 	if err := xml.NewDecoder(buf).Decode(&timeReply); err != nil {
 		msg := fmt.Sprintf("Failed to parse time reply from %q: %v", nick, err)
-		s.Say(reqFrom, msg, false)
+		s.Respond(reqFrom, msg, false)
 		return
 	}
 	msg := fmt.Sprintf("It's %s on %s's clock.", timeReply.String(), fromUser)
-	s.Say(reqFrom, msg, false)
+	s.Respond(reqFrom, msg, false)
 }
 
 func (s *Session) processIQ(stanza *xmpp.ClientIQ) interface{} {
@@ -438,7 +450,7 @@ func (s *Session) JoinMUC(confJID, nick, password string) error {
 		msg += " and password: " + conf.Password
 	}
 
-	fmt.Println(msg + "!")
+	fmt.Println(msg)
 	ver, err := s.GetInfoReply().VerificationString()
 	if err != nil {
 		log.Println(err)

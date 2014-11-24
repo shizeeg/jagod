@@ -9,7 +9,7 @@ import (
 )
 
 // RunPlugin is a generic interface for external commands.
-func (s *Session) RunPlugin(stanza xmpp.Stanza, filename string, params ...string) {
+func (s *Session) RunPlugin(stanza xmpp.Stanza, filename string, tonick bool, params ...string) {
 	message, ok := stanza.Value.(*xmpp.ClientMessage)
 	if !ok {
 		log.Println("Wrong Stanza type!")
@@ -28,5 +28,5 @@ func (s *Session) RunPlugin(stanza xmpp.Stanza, filename string, params ...strin
 		log.Println(err)
 		return
 	}
-	s.Say(stanza, out.String(), false)
+	s.Say(stanza, out.String(), tonick, false)
 }
