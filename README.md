@@ -136,9 +136,14 @@ disable-turn=false
 To enable this functionality.
 
 ---------------------------------------------------------------------
+Show title of a webpage posted in MUC. For example:
+<pre>
+&lt;sh!zeeg&lt; look here is a new version of jagod released! https://github.com/shizeeg/jagod
+&lt;jago&lt; Title: shizeeg/jagod · GitHub
 
-Official support conference: <xmpp:jagod@conference.jabber.org?join> <br />
-Development room: <xmpp:dev@conference.net45.uk.to?join> // no connection from jabber.ru/xmpp.ru at the moment, sorry.
+---------------------------------------------------------------------
+
+Development room: <xmpp:dev@conference.net45.tk?join>
 
 ---------------------------------------------------------------------
 

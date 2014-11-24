@@ -12,16 +12,17 @@ import (
 
 // Commands represents [cmd] config section.
 type Commands struct {
-	DisableInvite  bool `gcfg:"disable_invite"`
-	DisablePing    bool `gcfg:"disable_ping"`
-	DisableSpell   bool `gcfg:"disable_spell"`
-	DisableTr      bool `gcfg:"disable_tr"`
-	DisableTurn    bool `gcfg:"disable_turn"`
-	DisableTurnURL bool `gcfg:"disable_turn_url"`
-	DisableVersion bool `gcfg:"disable_version"`
-	DisableLeave   bool `gcfg:"disable_leave"`
-	DisableTime    bool `gcfg:"disable_time"`
-	DisableWeather bool `gcfg:"disable_weather"`
+	DisableInvite   bool `gcfg:"disable_invite"`
+	DisablePing     bool `gcfg:"disable_ping"`
+	DisableSpell    bool `gcfg:"disable_spell"`
+	DisableTr       bool `gcfg:"disable_tr"`
+	DisableTurn     bool `gcfg:"disable_turn"`
+	DisableTurnURL  bool `gcfg:"disable_turn_url"`
+	DisableVersion  bool `gcfg:"disable_version"`
+	DisableLeave    bool `gcfg:"disable_leave"`
+	DisableTime     bool `gcfg:"disable_time"`
+	DisableWeather  bool `gcfg:"disable_weather"`
+	DisableURLTitle bool `gcfg:"disable_urltitle"`
 }
 
 // Config configuration file structure

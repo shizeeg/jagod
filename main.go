@@ -187,6 +187,16 @@ func main() {
 					continue
 				}
 				msg := st.Body
+				if !s.config.Cmd.DisableURLTitle && (!strings.HasSuffix(st.From, parser.OwnNick) && IsContainsURL(msg)) {
+					message := strings.Replace(msg, "\n", " ", -1)
+					for _, word := range strings.Split(message, " ") {
+						if len(word) > 4 && word[0:4] == "http" {
+							go s.RunPlugin(stanza, "gettitle", false, word)
+							break
+						}
+					}
+				}
+
 				if st.Type == "groupchat" && !strings.HasSuffix(st.From, parser.OwnNick) {
 					conf, ok := s.conferences[xmpp.RemoveResourceFromJid(st.From)]
 					msg := conf.ChompNick(msg) // chomp "nick:" first
