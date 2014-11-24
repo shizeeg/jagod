@@ -54,7 +54,7 @@ func main() {
 	var weather MMWeather
 	if len(flag.Args()) > 0 && len(flag.Arg(0)) > 1 {
 		if code, err := strconv.Atoi(flag.Arg(0)); err != nil {
-			CityName = flag.Arg(0) // we got string
+			CityName = flag.Arg(0) // we've got a string
 			city := City{}
 			if err := city.GetCity(CityName); err != nil {
 				fmt.Println(err)
@@ -63,7 +63,7 @@ func main() {
 				CityName = city.Name
 			}
 		} else {
-			CityCode = code // we got number
+			CityCode = code // we have got a number
 		}
 	}
 	code, err := GetCode(CityCode)
