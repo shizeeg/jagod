@@ -108,7 +108,7 @@ func main() {
 			Caps: &xmpp.ClientCaps{
 				Hash: "sha-1",
 				Node: NODE,
-				Ver: ver,
+				Ver:  ver,
 			},
 		},
 	)
@@ -351,7 +351,25 @@ func main() {
 							}
 							s.Respond(stanza, "http://api.yandex.ru/dictionary/\n"+text, false)
 						}()
-
+					case "GOOGLE":
+						go func() {
+							msg := strings.Join(parser.Tokens[2:], " ")
+							gsres, err := Google(msg, 0)
+							results := gsres.ResponseData.Results
+							var out string
+							if err != nil {
+								out = err.Error()
+								s.Respond(stanza, out, false)
+								return
+							}
+							if len(results) <= 0 {
+								out = "Empty result!"
+								s.Respond(stanza, out, false)
+								return
+							}
+							out = fmt.Sprintf("%s\n%s\n%s\n", results[0].Title, results[0].URL, results[0].Content)
+							s.Respond(stanza, out, false)
+						}()
 					case "VERSION":
 						if s.config.Cmd.DisableVersion {
 							continue

@@ -103,6 +103,14 @@ spell-check <text> using yandex spellchecker. Now supports english, russian &
 ukrainian languages. You can set desired languages in config.
 
 ---------------------------------------------------------------------
+Google Search
+<pre>
+!! google &lt;request&gt;
+</pre>
+
+Search text in "request" on google.com
+
+---------------------------------------------------------------------
 Automatically unescape urls in messsages. You can add to config:
 
 ```cfg
