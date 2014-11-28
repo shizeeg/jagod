@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 	"os/exec"
+	"strings"
 
 	"github.com/shizeeg/xmpp"
 )
@@ -16,8 +17,8 @@ func (s *Session) RunPlugin(stanza xmpp.Stanza, filename string, tonick bool, pa
 		return
 	}
 	lang := "-lang=en"
-	if len(message.Lang) > 0 {
-		lang = "-lang=" + message.Lang
+	if len(message.Lang) >= 2 {
+		lang = "-lang=" + message.Lang[:2]
 	}
 	plugin := exec.Command(filename, lang)
 	plugin.Args = append(plugin.Args, params...)
@@ -28,5 +29,5 @@ func (s *Session) RunPlugin(stanza xmpp.Stanza, filename string, tonick bool, pa
 		log.Println(err)
 		return
 	}
-	s.Say(stanza, out.String(), tonick, false)
+	s.Say(stanza, strings.TrimSpace(out.String()), tonick, false)
 }
