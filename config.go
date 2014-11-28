@@ -23,6 +23,7 @@ type Commands struct {
 	DisableTime     bool `gcfg:"disable_time"`
 	DisableWeather  bool `gcfg:"disable_weather"`
 	DisableURLTitle bool `gcfg:"disable_urltitle"`
+	DisableGoogle   bool `gcfg:"disable_google"`
 }
 
 // Config configuration file structure

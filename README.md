@@ -105,17 +105,17 @@ ukrainian languages. You can set desired languages in config.
 ---------------------------------------------------------------------
 Google Search
 <pre>
-!! google &lt;request&gt;
+!! google [-lang=en] [-start=0] &lt;query&gt;
 </pre>
 
-Search text in "request" on google.com
+Search text in "query" on google.com
 
 ---------------------------------------------------------------------
 Automatically unescape urls in messsages. You can add to config:
 
 ```cfg
 [cmd]
-disable-turn-url=true 
+disable-turn-url=true
 ```
 
 To disable this functionality.

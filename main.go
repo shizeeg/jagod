@@ -306,7 +306,7 @@ func main() {
 						}
 						conf, ok := s.conferences[xmpp.RemoveResourceFromJid(st.From)]
 						if !ok {
-							s.conn.Send(st.From, "it can't be used in roster!")
+							s.conn.Send(st.From, "Can't be used in a roster!")
 							continue
 						}
 						var to, reason string
@@ -362,24 +362,11 @@ func main() {
 							s.Respond(stanza, "http://api.yandex.ru/dictionary/\n"+text, false)
 						}()
 					case "GOOGLE":
-						go func() {
-							msg := strings.Join(parser.Tokens[2:], " ")
-							gsres, err := Google(msg, 0)
-							results := gsres.ResponseData.Results
-							var out string
-							if err != nil {
-								out = err.Error()
-								s.Respond(stanza, out, false)
-								return
-							}
-							if len(results) <= 0 {
-								out = "Empty result!"
-								s.Respond(stanza, out, false)
-								return
-							}
-							out = fmt.Sprintf("%s\n%s\n%s\n", results[0].Title, results[0].URL, results[0].Content)
-							s.Respond(stanza, out, false)
-						}()
+						if s.config.Cmd.DisableGoogle {
+							continue
+						}
+						go s.RunPlugin(stanza, "google", true, parser.Tokens[2:]...)
+
 					case "VERSION":
 						if s.config.Cmd.DisableVersion {
 							continue

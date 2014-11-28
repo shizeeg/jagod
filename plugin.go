@@ -17,7 +17,7 @@ func (s *Session) RunPlugin(stanza xmpp.Stanza, filename string, tonick bool, pa
 	}
 	lang := "-lang=en"
 	if len(message.Lang) > 0 {
-		lang = "-lang="+message.Lang
+		lang = "-lang=" + message.Lang
 	}
 	plugin := exec.Command(filename, lang)
 	plugin.Args = append(plugin.Args, params...)

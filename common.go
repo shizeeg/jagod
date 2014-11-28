@@ -59,4 +59,3 @@ func PrintXML(s interface{}) error {
 	enc.Indent("", "    ")
 	return enc.Encode(s)
 }
-
