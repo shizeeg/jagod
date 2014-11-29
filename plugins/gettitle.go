@@ -17,9 +17,10 @@ var (
 	encoding    string
 	contType    string
 	lang        string
-	prefix      = "Заголовок"
 	link        string
 	showHeaders bool
+	prefix      = "Заголовок"
+	unkPrefix   = "HTTP заголовок"
 )
 
 func init() {
@@ -32,6 +33,7 @@ func init() {
 func main() {
 	if lang != "ru" {
 		prefix = "Title"
+		unkPrefix = "HTTP Header"
 	}
 	if len(flag.Args()) > 0 && len(flag.Arg(0)) > 0 {
 		link = flag.Arg(0)
@@ -43,6 +45,7 @@ func main() {
 	if headers, err := http.Head(link); err == nil {
 		contType = headers.Header.Get("Content-Type")
 		if showHeaders || len(contType) >= 9 && contType[0:9] != "text/html" {
+			fmt.Print(unkPrefix + ":")
 			for k, v := range headers.Header {
 				if showHeaders || (k == "Content-Type" || k == "Content-Length") {
 					fmt.Printf("\n%s: %s", k, v)
