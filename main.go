@@ -6,11 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
-	"os/signal"
-	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/shizeeg/xmpp"
@@ -19,68 +15,20 @@ import (
 var (
 	cfgfile string
 	pidfile string
+	pid     = PID{}
 )
 
 func init() {
 	flag.StringVar(&cfgfile, "c", "/etc/jagod.cfg", "main configuration file.")
 	flag.StringVar(&pidfile, "p", "/var/run/jagod.pid", "pidfile")
 	flag.Parse()
+	pid.FileName = pidfile
+	if err := pid.Write(); err != nil {
+		log.Printf("[WARNING] Can't write pidfile: %s", err.Error())
+	}
 }
 
 func main() {
-	// FIXME: oh, shi~ All this pid-stuff is just a mess..
-	go func() {
-		signalChan := make(chan os.Signal, 1)
-		signal.Notify(signalChan, os.Interrupt, os.Kill)
-
-		exitMsg := <-signalChan
-		fmt.Printf("Got signal: %q. Exiting.\n", exitMsg)
-		f, _ := os.Create(pidfile)
-		defer f.Close()
-		f.WriteString("")
-		os.Exit(0)
-	}()
-
-	pid := os.Getpid()
-	if f, err := os.Open(pidfile); err != nil {
-		log.Println(err)
-	} else {
-		buf := make([]byte, 256)
-		if _, err := f.Read(buf); err != nil {
-			// first launch probably
-			//log.Printf("WARNING: Can't read pid: %s\n", err)
-		}
-		if oldPid, err := strconv.Atoi(strings.Trim(string(buf), "\x00")); err == nil {
-			if oldPid > 0 {
-				proc, err := os.FindProcess(oldPid)
-				fmt.Printf("PROC: %#v\n%#v\n", proc, err)
-				if err == nil {
-					log.Printf("pid %d read from file, check if we're already running...", proc.Pid)
-					// check for "no such process" error
-					if err := proc.Signal(syscall.Signal(0)); err == nil || err.Error() != "no such process" {
-						log.Fatalf("We're running on PID %d\n", proc.Pid)
-						// if err := proc.Kill(); err != nil {
-						// 	log.Fatalf("Can't kill PID %d: %s\n", proc.Pid, err.Error())
-						// }
-					} else {
-						log.Println("SIG_0: ", err)
-					}
-				}
-			}
-		}
-		f.Close()
-
-		if f, err = os.Create(pidfile); err != nil {
-			log.Printf("WARNING: %s", err)
-		} else {
-			if _, err := f.WriteString(fmt.Sprintf("%d", pid)); err != nil {
-				log.Printf("WARNING: %q", err.Error())
-			} else {
-				log.Printf("PID: %d\n", pid)
-			}
-			f.Close()
-		}
-	}
 	s := Session{
 		config: &Config{},
 	}

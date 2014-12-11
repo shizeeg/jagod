@@ -6,11 +6,11 @@ Requires=postgresql.service
 
 [Service]
 Type=simple
-User=nobody
-Group=nobody
-PIDFile=/run/jagod.pid
+User=jagod
+Group=bots
+PIDFile=/run/jagod/pid
 
-ExecStart=/usr/local/bin/jagod -p /run/jagod.pid -c /etc/jagod.cfg
+ExecStart=/usr/local/bin/jagod -p /run/jagod/pid -c /etc/jagod.cfg
 #StandardError=null
 #StandardOutput=journald
 Restart=on-failure
