@@ -45,22 +45,22 @@ func main() {
 		usage(lang)
 		return
 	}
-	if headers, err := http.Head(link); err == nil {
-		contType = headers.Header.Get("Content-Type")
-		if showHeaders || len(contType) >= 9 && contType[0:9] != "text/html" {
-			if ok, _ := regexp.MatchString(exclude, contType); ok && exclude != "" {
-				return
-			}
-			fmt.Print(unkPrefix + ":")
-			for k, v := range headers.Header {
-				if showHeaders || (k == "Content-Type" || k == "Content-Length") {
-					fmt.Printf("\n%s: %s", k, v)
-				}
-			}
+	res, err := http.Get(link)
+
+	contType = res.Header.Get("Content-Type")
+	if showHeaders || len(contType) >= 9 && contType[0:9] != "text/html" {
+		if ok, _ := regexp.MatchString(exclude, contType); ok && exclude != "" {
 			return
 		}
+		fmt.Print(unkPrefix + ":")
+		for k, v := range res.Header {
+			if showHeaders || (k == "Content-Type" || k == "Content-Length") {
+				fmt.Printf("\n%s: %s", k, v)
+			}
+		}
+		return
 	}
-	res, err := http.Get(link)
+
 	if err != nil {
 		log.Fatal(err)
 	}
