@@ -29,5 +29,8 @@ func (s *Session) RunPlugin(stanza xmpp.Stanza, filename string, tonick bool, pa
 		log.Println(err)
 		return
 	}
-	s.Say(stanza, strings.TrimSpace(out.String()), tonick, false)
+	msg := strings.TrimSpace(out.String())
+	if len(msg) > 0 {
+		s.Say(stanza, msg, tonick, false)
+	}
 }

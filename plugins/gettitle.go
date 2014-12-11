@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -18,6 +19,7 @@ var (
 	contType    string
 	lang        string
 	link        string
+	exclude     string
 	showHeaders bool
 	prefix      = "Заголовок"
 	unkPrefix   = "HTTP заголовок"
@@ -27,6 +29,7 @@ func init() {
 	flag.StringVar(&encoding, "oe", "utf8", "Output Encoding")
 	flag.StringVar(&lang, "lang", "ru", "Language to output in")
 	flag.BoolVar(&showHeaders, "headers", false, "Show HTTP Headers")
+	flag.StringVar(&exclude, "exclude", "image/*", "Exclude these content types using regexp")
 	flag.Parse()
 }
 
@@ -45,6 +48,9 @@ func main() {
 	if headers, err := http.Head(link); err == nil {
 		contType = headers.Header.Get("Content-Type")
 		if showHeaders || len(contType) >= 9 && contType[0:9] != "text/html" {
+			if ok, _ := regexp.MatchString(exclude, contType); ok && exclude != "" {
+				return
+			}
 			fmt.Print(unkPrefix + ":")
 			for k, v := range headers.Header {
 				if showHeaders || (k == "Content-Type" || k == "Content-Length") {
@@ -114,8 +120,9 @@ func getTag(r io.Reader, tag string) (data string, err error) {
 
 func usage(lang string) {
 	if lang != "ru" {
-		fmt.Println("gettitle [-lang=ru|en] [-oe=utf8] [-headers] <http(s)://www.server.com/>")
+		fmt.Println("gettitle [-lang=ru|en] [-oe=utf8] [-headers] [-filter=\"\"] <http(s)://www.server.com/>")
+		flag.PrintDefaults()
 	} else {
-		fmt.Println("gettitle [-lang=ru|en] [-oe=utf8] [-headers] <http(s)://сервер.рф/>")
+		fmt.Println("gettitle [-lang=ru|en] [-oe=utf8] [-headers] [-filter\"\"] <http(s)://сервер.рф/>")
 	}
 }
