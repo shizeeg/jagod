@@ -111,6 +111,19 @@ Google Search
 Search text in "query" on google.com
 
 ---------------------------------------------------------------------
+External Calculator
+<pre>
+!! calc &lt;expression&gt;
+
+Run external calculator program (robpike.io/ivy by default)
+You can set an external calc yourself through EXCALC environment
+variable, for example:
+$ export EXCALC='calc'
+or
+$ export EXALC='ivy -e=true'
+
+---------------------------------------------------------------------
+
 Automatically unescape urls in messsages. You can add to config:
 
 ```cfg

@@ -315,6 +315,12 @@ func main() {
 						}
 						go s.RunPlugin(stanza, "google", true, parser.Tokens[2:]...)
 
+					case "CALC":
+						if s.config.Cmd.DisableCalc {
+							continue
+						}
+						go s.RunPlugin(stanza, "excalc", true, parser.Tokens[2:]...)
+
 					case "VERSION":
 						if s.config.Cmd.DisableVersion {
 							continue
