@@ -88,7 +88,7 @@ Yandex Dictionary (Yandex API key required!)
 </pre>
 
 Translate &lt;word&gt; from &lt;lang1&gt; to &lt;lang2&gt;
-To see possible language pairs use:
+To see possible language pairs to use:
 
 <pre>
 !! tr help
@@ -114,21 +114,26 @@ Search text in "query" on google.com
 External Calculator
 <pre>
 !! calc &lt;expression&gt;
+</pre>
 
 Run external calculator program (robpike.io/ivy by default)
 You can set an external calc yourself through EXCALC environment
 variable, for example:
+```sh
 $ export EXCALC='calc'
+```
 or
+```sh
 $ export EXALC='ivy -e=true'
-
+```
 ---------------------------------------------------------------------
 
-Automatically unescape urls in messsages. You can add to config:
+Automatically unescape urls in messsages. You can comment out the 
+following line in config:
 
-```cfg
-[cmd]
-disable-turn-url=true
+```conf
+[filters]
+; unescape_urls=auto
 ```
 
 To disable this functionality.
@@ -142,8 +147,8 @@ Automatically translates cyrillic text typed in wrong layout. For example:
 Disabled by default. You can add to config:
 
 ```cfg
-[cmd]
-disable-turn=false
+[filters]
+turn=auto
 ```
 
 To enable this functionality.
@@ -153,6 +158,7 @@ Show title of a webpage posted in MUC. For example:
 <pre>
 &lt;sh!zeeg&lt; look here is a new version of jagod released! https://github.com/shizeeg/jagod
 &lt;jago&lt; Title: shizeeg/jagod · GitHub
+</pre>
 
 ---------------------------------------------------------------------
 
