@@ -12,6 +12,7 @@ import (
 	"github.com/shizeeg/xmpp"
 )
 
+// Session represents active XMPP-session
 type Session struct {
 	conn              *xmpp.Conn
 	config            *Config
@@ -192,7 +193,7 @@ func (s *Session) processPresence(stanza *xmpp.MUCPresence) {
 		}
 
 		fmt.Println(msg)
-		for _, j := range s.config.Access.Owners {
+		for _, j := range s.config.c.Section("access").Key("owners").Strings("\n") {
 			if IsValidJID(j) {
 				s.conn.Send(j, msg)
 			}
@@ -435,8 +436,8 @@ func (s *Session) JoinMUC(confJID, nick, password string) error {
 	// FIXME: fetch settings from database. Separate for each conference.
 	parser := GluxiParser{
 		OwnNick:      nick,
-		NickSuffixes: s.config.MUC.NickSuffixes,
-		Prefix:       s.config.MUC.Prefix,
+		NickSuffixes: s.config.c.Section("muc").Key("nick_suffixes").String(),
+		Prefix:       s.config.c.Section("muc").Key("prefix").String(),
 	}
 	conf := Conference{
 		JID:      bareJID,
@@ -456,7 +457,7 @@ func (s *Session) JoinMUC(confJID, nick, password string) error {
 		log.Println(err)
 	}
 	st := xmpp.MUCPresence{
-		Lang: s.config.Account.Lang,
+		Lang: s.config.c.Section("account").Key("lang").String(),
 		To:   conf.JID + "/" + parser.OwnNick,
 		Caps: &xmpp.ClientCaps{
 			Hash: "sha-1",

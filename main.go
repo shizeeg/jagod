@@ -32,15 +32,21 @@ func main() {
 	s := Session{
 		config: &Config{},
 	}
-	// FIXME: need we respect XDG_CONFIG_DIRS?
-	if err := s.config.ReadFile(cfgfile); err != nil {
+
+	err := s.config.ReadFile(cfgfile)
+	if err != nil {
 		log.Fatal(err)
 	}
+	// FIXME: need we respect XDG_CONFIG_DIRS?
+	//if err := s.config.ReadFile(cfgfile); err != nil {
+	//	log.Fatal(err)
+	//}
+	account := s.config.c.Section("account")
 	conn, err := xmpp.Dial(
-		s.config.Account.Server+":"+s.config.Account.Port,
-		s.config.Account.User,
-		s.config.Account.Server,
-		s.config.Account.Password,
+		account.Key("server").String()+":"+account.Key("port").String(),
+		account.Key("user").String(),
+		account.Key("server").String(),
+		account.Key("password").String(),
 		s.config.xmppConfig)
 	if err != nil {
 		fmt.Printf("cant connect! %v", err)
@@ -52,7 +58,7 @@ func main() {
 
 	s.conn.SendStanza(
 		xmpp.ClientPresence{
-			Lang: s.config.Account.Lang,
+			Lang: account.Key("lang").String(),
 			Caps: &xmpp.ClientCaps{
 				Hash: "sha-1",
 				Node: NODE,
@@ -62,10 +68,11 @@ func main() {
 	)
 
 	_, _, err = s.conn.RequestRoster()
+	muc := s.config.c.Section("muc")
 	parser := GluxiParser{
-		Prefix:       s.config.MUC.Prefix,
-		NickSuffixes: s.config.MUC.NickSuffixes,
-		OwnNick:      s.config.MUC.Nick,
+		Prefix:       muc.Key("prefix").String(),
+		NickSuffixes: muc.Key("nick_suffixes").String(),
+		OwnNick:      muc.Key("nick").String(),
 	}
 	stanzaChan := make(chan xmpp.Stanza)
 	go s.readMessages(stanzaChan)
@@ -74,28 +81,35 @@ func main() {
 	s.conferences = make(map[string]Conference)
 
 	ticker := time.NewTicker(1 * time.Second)
-	pingticker := time.NewTicker(s.config.Account.Keepalive * time.Second)
+	pingticker := time.NewTicker(time.Duration(account.Key("keepalive").MustInt()) * time.Second)
 
-	fmt.Println(s.config.MUC.Autojoins)
-	for _, joinTo := range s.config.MUC.Autojoins {
-		confJID := joinTo
-		pass := ""
+	 fmt.Println(muc.Key("autojoin").Strings("\n"))
+	 for _, joinTo := range muc.Key("autojoin").Strings("\n") {
+		 confJID := joinTo
+		 pass := ""
 		if tmp := strings.SplitN(joinTo, ",", -1); len(tmp) == 2 {
 			confJID = strings.TrimSpace(tmp[0])
 			pass = strings.TrimSpace(tmp[1])
 		}
 		bareJID, nick := SplitJID(confJID)
 		if len(nick) == 0 {
-			nick = parser.OwnNick
-		}
-		if err := s.JoinMUC(bareJID, nick, pass); err != nil {
-			for _, j := range s.config.Access.Owners {
-				if IsValidJID(j) { // FIXME: temorary code.
-					s.conn.Send(j, "autojoin: "+err.Error())
+		nick = parser.OwnNick
+		 }
+			if err := s.JoinMUC(bareJID, nick, pass); err != nil {
+				for _, j := range s.config.c.Section("access").Key("owners").Strings("\n") {
+					if IsValidJID(j) { // FIXME: temorary code.
+						s.conn.Send(j, "autojoin: "+err.Error())
+					}
 				}
 			}
-		}
 	}
+
+	plugins := s.config.c.Section("plugins").KeysHash(true)
+	filters := s.config.c.Section("filters")
+	filterGetTitle, _ := filters.Key("gettitle").Bool()
+	filterURLUnescape, _ := filters.Key("url_unescape").Bool()
+	filterTurn, _ := filters.Key("turn").Bool()
+
 	for {
 		select {
 		case now := <-ticker.C:
@@ -135,7 +149,7 @@ func main() {
 					continue
 				}
 				msg := st.Body
-				if !s.config.Cmd.DisableURLTitle && (!strings.HasSuffix(st.From, parser.OwnNick) && IsContainsURL(msg)) {
+				if filterGetTitle && (!strings.HasSuffix(st.From, parser.OwnNick) && IsContainsURL(msg)) {
 					message := strings.Replace(msg, "\n", " ", -1)
 					for _, word := range strings.Split(message, " ") {
 						if len(word) > 4 && word[0:4] == "http" {
@@ -151,13 +165,13 @@ func main() {
 					if !ok {
 						continue
 					}
-					if !s.config.Cmd.DisableTurnURL && IsContainsURL(msg) {
+					if filterURLUnescape && IsContainsURL(msg) {
 						if link, err := url.QueryUnescape(msg); err == nil {
 							if strings.Count(msg, "%") > 3 {
 								s.conn.SendMUC(conf.JID, "groupchat", link)
 							}
 						}
-					} else if !s.config.Cmd.DisableTurn && IsWrongLayout(msg) {
+					} else if filterTurn && IsWrongLayout(msg) {
 						// fmt.Printf("MSG WRONG LAYOUT: %q\n%#v", msg, st)
 						s.conn.SendMUC(conf.JID, "groupchat", Turn(msg))
 					}
@@ -191,6 +205,12 @@ func main() {
 					// 	toJID = st.From
 					// }
 					switch CMD {
+					// Run external commands (CLI)
+					default:
+						if cli, ok := plugins[CMD]; ok {
+							go s.RunPlugin(stanza, cli, true, parser.Tokens[2:]...)
+						}
+
 					case "JOIN":
 						conf := parser.Tokens[2]
 						parts := strings.Split(conf, "/")
@@ -204,7 +224,7 @@ func main() {
 							password = parser.Tokens[3]
 						}
 						if err := s.JoinMUC(conf, parser.OwnNick, password); err != nil {
-							for _, j := range s.config.Access.Owners {
+							for _, j := range s.config.c.Section("access").Key("owners").Strings("\n") {
 								if IsValidJID(j) { // FIXME: temorary code.
 									s.conn.Send(j, err.Error())
 								}
@@ -212,9 +232,6 @@ func main() {
 						}
 
 					case "LEAVE", "EXIT", "QUIT", "PART":
-						if s.config.Cmd.DisableLeave {
-							continue
-						}
 						conf, ok := s.conferences[xmpp.RemoveResourceFromJid(st.From)]
 						param1, err := parser.Token(2)
 						param1 = xmpp.RemoveResourceFromJid(param1)
@@ -249,7 +266,7 @@ func main() {
 						s.Respond(stanza, "I'm quit from "+conf.JID, false)
 
 					case "INVITE": // FIXME: need to check XEP-0249 support first
-						if s.config.Cmd.DisableInvite {
+						if s.config.c.Section("internals").Key("invite").MustBool(true) {
 							continue
 						}
 						conf, ok := s.conferences[xmpp.RemoveResourceFromJid(st.From)]
@@ -267,62 +284,9 @@ func main() {
 						// FIXME: resolve jid from nick (db stuff)
 						// fmt.Printf("INVITE: to %q\nconf: %q\npass: %q\nreason: %q\n", to, conf.JID, conf.Password, reason)
 						s.conn.DirectInviteMUC(to, conf.JID, conf.Password, reason)
-					case "WEATHER", "GISMETEO":
-						if s.config.Cmd.DisableWeather {
-							continue
-						}
-						if len(parser.Tokens) < 3 {
-							s.Respond(stanza, "!<sect> weather <city>", false)
-							continue
-						}
-						go s.RunPlugin(stanza, "gismeteo", true, parser.Tokens[2:]...)
-					case "SPELL":
-						if s.config.Cmd.DisableSpell {
-							continue
-						}
-						req := strings.Join(parser.Tokens[2:], " ")
-						text := YandexSpell(s.config.Yandex.SpellLangs, req)
-						if len(text) == 0 {
-							text = "no responce from yandex.ru"
-						}
-						s.Respond(stanza, text, false)
-					case "TR":
-						if s.config.Cmd.DisableTr {
-							continue
-						}
-						go func() {
-							var text, lang string
-							if len(parser.Tokens) > 2 {
-								lang = parser.Tokens[2]
-							}
-							if lang == "help" {
-								text = strings.Join(GetLangs(s.config.Yandex.DictAPI), ", ")
-							} else if len(parser.Tokens) > 3 {
-								req := strings.Join(parser.Tokens[3:], " ")
-								text = YandexDic(s.config.Yandex.DictAPI, s.config.Yandex.RespLang, lang, req)
-							} else {
-								text = "tr <lang-lang>|<help> <text>"
-							}
-
-							if len(text) == 0 {
-								text = "no responce from yandex.ru"
-							}
-							s.Respond(stanza, "http://api.yandex.ru/dictionary/\n"+text, false)
-						}()
-					case "GOOGLE":
-						if s.config.Cmd.DisableGoogle {
-							continue
-						}
-						go s.RunPlugin(stanza, "google", true, parser.Tokens[2:]...)
-
-					case "CALC":
-						if s.config.Cmd.DisableCalc {
-							continue
-						}
-						go s.RunPlugin(stanza, "excalc", true, parser.Tokens[2:]...)
 
 					case "VERSION":
-						if s.config.Cmd.DisableVersion {
+						if s.config.c.Section("version").Key("version").MustBool(true) {
 							continue
 						}
 						fmt.Printf("TONICK: %q\n", toNick)
@@ -334,8 +298,9 @@ func main() {
 						// FIXME: move it to the s.Conferences[jid].timeouts[cookie]
 						s.timeouts[cookie] = time.Now().Add(5 * time.Second)
 						go s.awaitVersionReply(replyChan, stanza)
+
 					case "TIME":
-						if s.config.Cmd.DisableTime {
+						if s.config.c.Section("internals").Key("time").MustBool(true) {
 							continue
 						}
 						replyChan, cookie, err := s.conn.SendIQ(toJID, "get", xmpp.TimeQuery{})
@@ -346,7 +311,7 @@ func main() {
 						go s.awaitTimeReply(replyChan, stanza)
 
 					case "PING":
-						if s.config.Cmd.DisablePing {
+						if s.config.c.Section("internals").Key("ping").MustBool(true) {
 							continue
 						}
 						replyChan, cookie, err := s.conn.SendIQ(toJID, "get", xmpp.PingQuery{})

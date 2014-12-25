@@ -4,74 +4,15 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/shizeeg/gcfg"
+	"github.com/shizeeg/ini"
 	"github.com/shizeeg/xmpp"
 )
 
-// Commands represents [cmd] config section.
-type Commands struct {
-	DisableInvite   bool `gcfg:"disable_invite"`
-	DisablePing     bool `gcfg:"disable_ping"`
-	DisableSpell    bool `gcfg:"disable_spell"`
-	DisableTr       bool `gcfg:"disable_tr"`
-	DisableTurn     bool `gcfg:"disable_turn"`
-	DisableTurnURL  bool `gcfg:"disable_turn_url"`
-	DisableVersion  bool `gcfg:"disable_version"`
-	DisableLeave    bool `gcfg:"disable_leave"`
-	DisableTime     bool `gcfg:"disable_time"`
-	DisableWeather  bool `gcfg:"disable_weather"`
-	DisableURLTitle bool `gcfg:"disable_urltitle"`
-	DisableGoogle   bool `gcfg:"disable_google"`
-	DisableCalc     bool `gcfg:"disable_calc"`
-}
-
-// Config configuration file structure
+// Config is a configuration file structure
 type Config struct {
-	// Log struct {
-	//	File     string `gcfg:"file"`
-	//	Chatlogs string `gcfg:"chatlogs"`
-	// }
-
-	Account struct {
-		User              string        `gcfg:"user"`
-		Password          string        `gcfg:"password"`
-		Server            string        `gcfg:"server"`
-		Port              string        `gcfg:"port"`
-		Resource          string        `gcfg:"resource"`
-		Lang              string        `gcfg:"lang"`
-		FingerprintSHA256 string        `gcfg:"fingerprintsha256"`
-		Trusted           bool          `gcfg:"Trusted"`
-		SkipTLS           bool          `gcfg:"SkipTLS"`
-		Priority          string        `gcfg:"priority"`
-		Keepalive         time.Duration `gcfg:"keepalive"`
-		JID               string        `gcfg:"jid"`
-	}
-	Access struct {
-		Owners []string `gcfg:"owner"`
-	}
-	MUC struct {
-		Nick         string   `gcfg:"nick"`
-		Prefix       string   `gcfg:"prefix"`
-		NickSuffixes string   `gcfg:"nick_suffixes"`
-		LeaveMinJIDs string   `gcfg:"leave_minjids"`
-		Autojoins    []string `gcfg:"autojoin"`
-	}
-	Database struct {
-		Type     string `gcfg:"type"`
-		Server   string `gcfg:"server"`
-		Port     string `gcfg:"port"`
-		Password string `gcfg:"password"`
-		User     string `gcfg:"user"`
-		Database string `gcfg:"database"`
-	}
-	Yandex struct {
-		DictAPI    string `gcfg:"dictapi"`
-		RespLang   string `gcfg:"response_lang"`
-		SpellLangs string `gcfg:"spell_langs"`
-	}
-	Cmd Commands
+	// main config file pointer
+	c *ini.File
 	// pointer to config for xmpp.Dial()
 	xmppConfig *xmpp.Config
 }
@@ -82,21 +23,24 @@ type Config struct {
 //	log.Fataln(err)
 // }
 func (cfg *Config) ReadFile(filename string) error {
-	if err := gcfg.ReadFileInto(cfg, filename); err != nil {
+	c, err := ini.Load(filename)
+	if err != nil {
 		return err
 	}
+	cfg.c = c
+	acc := cfg.c.Section("account")
 	cfg.xmppConfig = &xmpp.Config{}
-	cfg.xmppConfig.Resource = cfg.Account.Resource
-	cfg.xmppConfig.SkipTLS = cfg.Account.SkipTLS
-	cfg.xmppConfig.TrustedAddress = cfg.Account.Trusted
-	cfg.xmppConfig.ServerCertificateSHA256 = cfg.FingerprintToBytes()
+	cfg.xmppConfig.Resource = acc.Key("resource").String()
+	cfg.xmppConfig.SkipTLS = acc.Key("SkipTLS").MustBool()
+	cfg.xmppConfig.TrustedAddress = acc.Key("trusted").MustBool()
+	cfg.xmppConfig.ServerCertificateSHA256 = FingerprintToBytes(acc.Key("FingerprintSHA256").String())
 	return nil
 }
 
 // FingerprintToBytes converts SHA256 fingerprint from "AA:BB:CC:DD" format to bytes array
-func (cfg *Config) FingerprintToBytes() []byte {
+func FingerprintToBytes(sha256 string) []byte {
 	var out []byte
-	fingerprint := strings.TrimSpace(cfg.Account.FingerprintSHA256)
+	fingerprint := strings.Trim(sha256, "\n\r\t \"")
 	fprintlen := len(fingerprint)
 
 	switch fprintlen {
