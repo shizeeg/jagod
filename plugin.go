@@ -25,6 +25,7 @@ func (s *Session) RunPlugin(stanza xmpp.Stanza, filename string, tonick bool, pa
 
 	var out bytes.Buffer
 	plugin.Stdout = &out
+	plugin.Stderr = &out
 	if err := plugin.Run(); err != nil {
 		log.Println(err)
 		return
