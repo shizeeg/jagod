@@ -208,7 +208,12 @@ func main() {
 					// Run external commands (CLI)
 					default:
 						if cli, ok := plugins[CMD]; ok {
-							go s.RunPlugin(stanza, cli, true, parser.Tokens[2:]...)
+							plugin := strings.Split(cli, " ")
+							params := parser.Tokens[2:]
+							if len(plugin) > 1 {
+								params = append(plugin[1:], parser.Tokens[2:]...)
+							}
+							go s.RunPlugin(stanza, plugin[0], true, params...)
 						}
 
 					case "JOIN":
