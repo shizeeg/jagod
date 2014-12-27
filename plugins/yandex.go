@@ -32,7 +32,7 @@ func init() {
 
 func main() {
 	fmt.Println(banner)
-	if flag.NArg() < 1 || len(flag.Arg(0)) < 5 {
+	if flag.NArg() < 1 || len(flag.Arg(0)) < 2 {
 		usage(lang)
 		return
 	}
