@@ -271,7 +271,7 @@ func main() {
 						s.Respond(stanza, "I'm quit from "+conf.JID, false)
 
 					case "INVITE": // FIXME: need to check XEP-0249 support first
-						if s.config.c.Section("internals").Key("invite").MustBool(true) {
+						if s.config.c.Section("internal").Key("invite").MustBool() {
 							continue
 						}
 						conf, ok := s.conferences[xmpp.RemoveResourceFromJid(st.From)]
@@ -291,7 +291,7 @@ func main() {
 						s.conn.DirectInviteMUC(to, conf.JID, conf.Password, reason)
 
 					case "VERSION":
-						if s.config.c.Section("version").Key("version").MustBool(true) {
+						if s.config.c.Section("internal").Key("version").MustBool() {
 							continue
 						}
 						fmt.Printf("TONICK: %q\n", toNick)
@@ -305,7 +305,7 @@ func main() {
 						go s.awaitVersionReply(replyChan, stanza)
 
 					case "TIME":
-						if s.config.c.Section("internals").Key("time").MustBool(true) {
+						if s.config.c.Section("internal").Key("time").MustBool() {
 							continue
 						}
 						replyChan, cookie, err := s.conn.SendIQ(toJID, "get", xmpp.TimeQuery{})
@@ -316,7 +316,7 @@ func main() {
 						go s.awaitTimeReply(replyChan, stanza)
 
 					case "PING":
-						if s.config.c.Section("internals").Key("ping").MustBool(true) {
+						if s.config.c.Section("internal").Key("ping").MustBool() {
 							continue
 						}
 						replyChan, cookie, err := s.conn.SendIQ(toJID, "get", xmpp.PingQuery{})
