@@ -145,7 +145,7 @@ func main() {
 
 			switch st := stanza.Value.(type) {
 			case *xmpp.ClientMessage:
-				if st.IsDelayed() { // ignore history (delayed messages)
+				if st.IsDelayed() || len(st.Subject) > 0 { // ignore history (delayed) and topic messages
 					continue
 				}
 				msg := st.Body
