@@ -51,7 +51,9 @@ func main() {
 	if len(results) <= 3 {
 		res = startPage % 4
 	}
-	fmt.Printf("%s\n%s\n%s\n", results[res].Title, results[res].URL, results[res].Content)
+	fmt.Printf("%s\n%s\n%s\n", stripHTML(results[res].Title),
+		results[res].URL,
+		stripHTML(results[res].Content))
 }
 
 // Google returs parsed Google result in a GoogleSearch struct form
@@ -83,6 +85,17 @@ func usage(lang string) {
 		fmt.Println("  -lang=en|ru - output messages in this language")
 		fmt.Println("  -start=# - show result # (starts from 0)")
 	}
+}
+
+// seems like Google uses only <b> tags to format ouptut,
+// so we strip <b> and </b> only.
+func stripHTML(s string) string {
+	s = strings.Replace(s, "<b>", "", -1)
+	s = strings.Replace(s, "</b>", "", -1)
+	// s = stirngs.Replace(s, "<br />", "\n", -1)
+	// s = strings.Replace(s, "<br/>", "\n", -1)
+
+	return s
 }
 
 type result struct {
