@@ -2,10 +2,12 @@ package main
 
 import (
 	"errors"
-	"github.com/shizeeg/xmpp"
 	"strings"
+
+	"github.com/shizeeg/xmpp"
 )
 
+// GluxiParser is an internal representation of parser data
 type GluxiParser struct {
 	Prefix       string
 	IsForMe      bool
@@ -94,7 +96,7 @@ func (p *GluxiParser) Token(index int) (token string, err error) {
 		if index > 0 {
 			token = p.Tokens[index]
 			if len(strings.TrimSpace(token)) == 0 {
-				err = errors.New("Empty token!")
+				err = errors.New("Empty token")
 			}
 			return
 		}
@@ -104,5 +106,5 @@ func (p *GluxiParser) Token(index int) (token string, err error) {
 		}
 		return
 	}
-	return "", errors.New("Index out of bound!")
+	return "", errors.New("Index out of bound")
 }

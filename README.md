@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/shizeeg/jagod)](https://goreportcard.com/report/github.com/shizeeg/jagod)
+
 jagod
 =====
 

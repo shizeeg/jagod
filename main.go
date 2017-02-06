@@ -24,7 +24,7 @@ func init() {
 	flag.Parse()
 	pid.FileName = pidfile
 	if err := pid.Write(); err != nil {
-		log.Printf("[WARNING] Can't write pidfile: %s", err.Error())
+		log.Printf("[WARNING] unable to write pidfile: %s", err.Error())
 	}
 }
 
@@ -83,25 +83,25 @@ func main() {
 	ticker := time.NewTicker(1 * time.Second)
 	pingticker := time.NewTicker(time.Duration(account.Key("keepalive").MustInt()) * time.Second)
 
-	 fmt.Println(muc.Key("autojoin").Strings("\n"))
-	 for _, joinTo := range muc.Key("autojoin").Strings("\n") {
-		 confJID := joinTo
-		 pass := ""
+	fmt.Println(muc.Key("autojoin").Strings("\n"))
+	for _, joinTo := range muc.Key("autojoin").Strings("\n") {
+		confJID := joinTo
+		pass := ""
 		if tmp := strings.SplitN(joinTo, ",", -1); len(tmp) == 2 {
 			confJID = strings.TrimSpace(tmp[0])
 			pass = strings.TrimSpace(tmp[1])
 		}
 		bareJID, nick := SplitJID(confJID)
 		if len(nick) == 0 {
-		nick = parser.OwnNick
-		 }
-			if err := s.JoinMUC(bareJID, nick, pass); err != nil {
-				for _, j := range s.config.c.Section("access").Key("owners").Strings("\n") {
-					if IsValidJID(j) { // FIXME: temorary code.
-						s.conn.Send(j, "autojoin: "+err.Error())
-					}
+			nick = parser.OwnNick
+		}
+		if err := s.JoinMUC(bareJID, nick, pass); err != nil {
+			for _, j := range s.config.c.Section("access").Key("owners").Strings("\n") {
+				if IsValidJID(j) { // FIXME: temorary code.
+					s.conn.Send(j, "autojoin: "+err.Error())
 				}
 			}
+		}
 	}
 
 	plugins := s.config.c.Section("plugins").KeysHash(true)

@@ -99,7 +99,7 @@ func YandexSpell(langs, text string) string {
 	}
 	var s string
 	for _, e := range r.Errors {
-		for iw, _ := range e.Words {
+		for iw := range e.Words {
 			if iw >= len(e.S) {
 				break
 			}

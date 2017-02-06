@@ -8,6 +8,7 @@ import (
 	"github.com/shizeeg/xmpp"
 )
 
+// Conference a struct contains info about a single conference
 type Conference struct {
 	JID       string
 	Password  string
@@ -16,6 +17,7 @@ type Conference struct {
 	Occupants []Occupant
 }
 
+// Occupant a struct contains info about a single MUC occupant
 type Occupant struct {
 	Nick  string // room nickname. REQUIRED
 	JID   string // optional (if available)
@@ -23,7 +25,7 @@ type Occupant struct {
 	Role  string // moderator, participant, visitor, none
 }
 
-// IsNick checks if given string is actual nick
+// NickIndex checks if given string is actual nick
 // returns index in Conference.Occupants and true, -1, false otherwise.
 func (c *Conference) NickIndex(nick string) (index int, found bool) {
 	for i, o := range c.Occupants {
@@ -39,7 +41,6 @@ func (c *Conference) GetOccupantByNick(nick string) (i int, occ Occupant) {
 	for i, o := range c.Occupants {
 		if nick == o.Nick {
 			return i, o
-			break
 		}
 	}
 	return -1, Occupant{}
@@ -61,7 +62,7 @@ func (c *Conference) ChompNick(msg string) string {
 // OccupantAdd adds occupant from <presence> stanza sent on somebody new joins the conference
 func (c *Conference) OccupantAdd(stanza *xmpp.MUCPresence) (added Occupant, err error) {
 	if len(stanza.X) <= 0 {
-		return Occupant{}, errors.New("no <x /> child in stanza!")
+		return Occupant{}, errors.New("no <x /> child in stanza")
 	}
 	x := stanza.X[0]
 	var nick string
@@ -100,9 +101,10 @@ func (c *Conference) OccupantAdd(stanza *xmpp.MUCPresence) (added Occupant, err 
 	return
 }
 
+// OccupantDel removes and returnes an occupant from internal representation
 func (c *Conference) OccupantDel(stanza *xmpp.MUCPresence) (deleted Occupant, err error) {
 	if len(stanza.X) == 0 {
-		return Occupant{}, errors.New("no <x /> child in stanza!")
+		return Occupant{}, errors.New("no <x /> child in stanza")
 	}
 	//x := stanza.X[0]
 	var nick string
@@ -117,7 +119,7 @@ func (c *Conference) OccupantDel(stanza *xmpp.MUCPresence) (deleted Occupant, er
 			return deleted, nil
 		}
 	}
-	return Occupant{}, errors.New(fmt.Sprintf("nick: %q not in %q!", nick, c))
+	return Occupant{}, fmt.Errorf("nick: %q not in %v", nick, c)
 }
 
 //func (c *Conference) NickToJids(nick string, last bool) (jids []string, err error) {

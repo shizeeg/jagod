@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"encoding/xml"
+
 	"github.com/shizeeg/xmpp"
 )
 
@@ -18,7 +19,7 @@ func SplitJID(jid string) (barejid, resource string) {
 	return jid, ""
 }
 
-// IsValidJid checks if JID is valid
+// IsValidJID checks if JID is valid
 // fullJid == true adds additional check for /resource
 func IsValidJID(jid string) bool {
 	if len(jid) < 5 { // a@b.c
@@ -34,7 +35,7 @@ func IsValidJID(jid string) bool {
 	return false
 }
 
-// GetTImeDate return timezone (tzo) and time (utc) as defined in XEP-0202
+// GetTimeDate return timezone (tzo) and time (utc) as defined in XEP-0202
 // http://xmpp.org/extensions/xep-0202.html
 func GetTimeDate() (tzo, utc string) {
 	now := time.Now()
@@ -43,7 +44,7 @@ func GetTimeDate() (tzo, utc string) {
 	return
 }
 
-// GetTimeOld returns timezone, datetime and display suggestion as defined in
+// GetTimeDateOld returns timezone, datetime and display suggestion as defined in
 // XEP-0090 http://xmpp.org/extensions/xep-0090.html
 func GetTimeDateOld() (tz, utc, display string) {
 	now := time.Now()

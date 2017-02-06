@@ -368,45 +368,7 @@ func (s *Session) processIQ(stanza *xmpp.ClientIQ) interface{} {
 		}
 		fmt.Printf("jabber:iq:version %#v\n", reply)
 		return reply
-		//	case "jabber:iq:roster query":
-		//		if len(stanza.From) > 0 /*&& stanza.From != s.account */ {
-		//	warn(s.term, "Ignoring roster IQ from bad address: "+stanza.From)
-		//			fmt.Printf("WARN: Ignoring roster IQ from bad adress: %s", stanza.From)
-		//			return nil
-		//		}
-		//		var roster xmpp.Roster
-		//		if err := xml.NewDecoder(bytes.NewBuffer(stanza.Query)).Decode(&roster); err != nil || len(roster.Item) == 0 {
-		//	warn(s.term, "Failed to parse roster push IQ")
-		//			fmt.Printf("WARN: Failed to parse roster push IQ")
-		//			return nil
-		//		}
-		//		entry := roster.Item[0]
-		//
-		//		if entry.Subscription == "remove" {
-		//			for i, rosterEntry := range s.roster {
-		//				if rosterEntry.Jid == entry.Jid {
-		//					copy(s.roster[i:], s.roster[i+1:])
-		//					s.roster = s.roster[:len(s.roster)-1]
-		//				}
-		//			}
-		//			return xmpp.EmptyReply{}
-		//		}
-		//
-		//		found := false
-		//		for i, rosterEntry := range s.roster {
-		//			if rosterEntry.Jid == entry.Jid {
-		//				s.roster[i] = entry
-		//				found = true
-		//				break
-		//			}
-		//		}
-		//		if !found {
-		//			s.roster = append(s.roster, entry)
-		//			s.input.AddUser(entry.Jid)
-		//		}
-		//		return xmpp.EmptyReply{}
 	default:
-		//	info(s.term, "Unknown IQ: "+startElem.Name.Space+" "+startElem.Name.Local)
 		msg := fmt.Sprintf("Unknown IQ: %s %s\n", startElem.Name.Space, startElem.Name.Local)
 		fmt.Println(msg)
 	}
@@ -464,7 +426,7 @@ func (s *Session) JoinMUC(confJID, nick, password string) error {
 			Node: NODE,
 			Ver:  ver,
 		},
-		X: []*xmpp.X{&xmpp.X{
+		X: []*xmpp.X{{
 			XMLName:  xml.Name{Space: "http://jabber.org/protocol/muc", Local: "x"},
 			Password: conf.Password,
 			History:  &xmpp.History{MaxChars: "0"}}},
