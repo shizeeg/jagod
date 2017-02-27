@@ -129,6 +129,13 @@ or
 $ export EXALC='ivy -e=true'
 ```
 ---------------------------------------------------------------------
+Show how much time to supplied date
+<pre>
+!! when 2017-05-16
+2 months, 17 days, 2 hours
+</pre>
+
+---------------------------------------------------------------------
 
 Automatically unescape urls in messsages. You can comment out the 
 following line in config:
