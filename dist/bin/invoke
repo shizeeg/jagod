@@ -1,0 +1,29 @@
+#!/bin/sh
+# jagod helper to use any command-line utility as a plugin
+# for example: in jagod.cfg
+# ```conf
+# [plugins]
+# HELLO="invoke echo hello world!"
+# ```
+# then in a jabber conference:
+# <you> !! hello 
+# <jagod> hello world!
+#
+if [[ $# < 2 ]];then
+	echo $(basename $0) "<-lang=en|ru> <command> [parameters...]" >&2;
+	exit 1;
+fi
+
+function withlocale() {
+	echo "$(cat /etc/locale.gen | grep -v '#' | grep "${1}" | cut -d ' ' -f1)"
+}
+if [[ $(echo "$1" | grep -i -- '-lang')  ]];then
+	LNG=$(echo $1 | cut -d '=' -f2)
+	shift
+fi
+OLD_LANG="${LANG}"
+LANG="$(withlocale ${LNG})"
+if [[ -x $(which ${1}) ]];then
+	${1} "${@:2}"
+fi
+LANG="${OLD_LANG}"
