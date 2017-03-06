@@ -28,6 +28,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -41,9 +42,37 @@ const (
 	year  = month * 12
 )
 
+type ApproxSign bool
+
+// Approximation flag stringer
+// appx := Approx(true)
+// fmt.Printf("%v%d days", approx, 30)
+// prints: ~30 days
+func (a ApproxSign) String() string {
+	if a == true {
+		// U+2248 ALMOST EQUAL TO ( ≈ )
+		return fmt.Sprintf("%c", 0x2248)
+	}
+	return ""
+}
+
+type Days struct {
+	time.Duration
+	Approx ApproxSign
+}
+
+func (d Days) String() string {
+	var ago string
+	if d.Hours() < 0 {
+		ago = " ago"
+	}
+	return fmt.Sprintf("%c%s%s", ago, d.Approx, d.pluralize("day"))
+}
+
 func main() {
 	if len(os.Args) <= 1 {
-		fmt.Fprintf(os.Stderr, "%s YYYY-MM-DD\n", os.Args[0])
+		fmt.Fprintf(os.Stdout, "%s YYYY-MM-DD\n", os.Args[0])
+		os.Exit(1)
 	}
 
 	date, err := time.Parse("2006-01-02", os.Args[1])
@@ -57,8 +86,8 @@ func main() {
 		}
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "date must be in YYYY-MM-DD format! => %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stdout, "date must be in YYYY-MM-DD format! => %v\n", err)
+		os.Exit(2)
 	}
 
 	dateMaps := map[string]int{
@@ -91,16 +120,41 @@ func main() {
 	dateMaps["month"] = months
 	dateMaps["day"] = days
 	dateMaps["hour"] = hours
-	fmt.Println(formatTime(dateMaps))
+	var approx ApproxSign
+	var ago string
+	if months > 0 {
+		daycount := dateMaps["year"]*365 + int(math.Floor(float64(time.Until(date)/day)))
+		if hour > 0 { // add +1 not complete day
+			daycount++
+			approx = true
+		}
+		if daycount < 0 {
+			ago = " ago"
+		}
+		fmt.Printf("%s (%v%s%s) \n",
+			formatTime(dateMaps),
+			approx, pluralize("day", int(math.Abs(float64(daycount)))),
+			ago,
+		)
+	} else {
+		fmt.Println(formatTime(dateMaps))
+	}
 }
-
-// pluralize appends 's' to 'noun' param if amount > 1 and
-// returns "amount nouns"
 func pluralize(noun string, amount int) string {
-	if amount > 1 {
+	if amount < 0 {
+		amount = -amount
+	}
+	if amount != 1 {
 		noun += "s"
 	}
 	return fmt.Sprintf("%d %s", amount, noun)
+}
+
+func (d Days) pluralize(noun string) string {
+	if d.Hours()/24 != 1 {
+		noun += "s"
+	}
+	return fmt.Sprintf("%d %s", math.Trunc(d.Hours()/24), noun)
 }
 
 // formatTime returns y years, m months, d days string
@@ -108,7 +162,7 @@ func formatTime(maps map[string]int) string {
 	var out []string
 	// make sure order is correct
 	for _, str := range []string{"year", "month", "day", "hour"} {
-		if maps[str] > 0 {
+		if maps[str] != 0 {
 			out = append(out, pluralize(str, maps[str]))
 		}
 	}
