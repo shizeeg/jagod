@@ -42,6 +42,7 @@ const (
 	year  = month * 12
 )
 
+// ApproxSign is true when date is approximate
 type ApproxSign bool
 
 // Approximation flag stringer
@@ -54,19 +55,6 @@ func (a ApproxSign) String() string {
 		return fmt.Sprintf("%c", 0x2248)
 	}
 	return ""
-}
-
-type Days struct {
-	time.Duration
-	Approx ApproxSign
-}
-
-func (d Days) String() string {
-	var ago string
-	if d.Hours() < 0 {
-		ago = " ago"
-	}
-	return fmt.Sprintf("%c%s%s", ago, d.Approx, d.pluralize("day"))
 }
 
 func main() {
@@ -92,14 +80,20 @@ func main() {
 
 	dateMaps := map[string]int{
 		"year":  date.Year() - time.Now().Year(),
-		"month": 0,
-		"day":   0,
+		"month": int(date.Month() - time.Now().Month()),
+		"day":   date.Day() - time.Now().Day(),
 		"hour":  0,
 	}
 
 	date = date.AddDate(-dateMaps["year"], 0, 0)
 	dur := time.Until(date)
 
+	var approx ApproxSign
+	var ago string
+	if dur < 0 {
+		dur = -dur
+		ago = " ago"
+	}
 	var hours, days, months, years int
 	for dur > time.Hour {
 		dur -= hour
@@ -120,24 +114,23 @@ func main() {
 	dateMaps["month"] = months
 	dateMaps["day"] = days
 	dateMaps["hour"] = hours
-	var approx ApproxSign
-	var ago string
-	if months > 0 {
-		daycount := dateMaps["year"]*365 + int(math.Floor(float64(time.Until(date)/day)))
-		if hour > 0 { // add +1 not complete day
-			daycount++
-			approx = true
-		}
-		if daycount < 0 {
-			ago = " ago"
-		}
+
+	daycount := dateMaps["year"]*365 + int(math.Floor(float64(time.Until(date)/day)))
+	if daycount < 0 {
+		daycount = -daycount
+	}
+	if hour > 0 {
+		approx = true
+		daycount++
+	}
+	if days > 0 {
 		fmt.Printf("%s (%v%s%s) \n",
 			formatTime(dateMaps),
 			approx, pluralize("day", int(math.Abs(float64(daycount)))),
 			ago,
 		)
 	} else {
-		fmt.Println(formatTime(dateMaps))
+		fmt.Printf("%s%s\n", formatTime(dateMaps), ago)
 	}
 }
 func pluralize(noun string, amount int) string {
@@ -148,13 +141,6 @@ func pluralize(noun string, amount int) string {
 		noun += "s"
 	}
 	return fmt.Sprintf("%d %s", amount, noun)
-}
-
-func (d Days) pluralize(noun string) string {
-	if d.Hours()/24 != 1 {
-		noun += "s"
-	}
-	return fmt.Sprintf("%d %s", math.Trunc(d.Hours()/24), noun)
 }
 
 // formatTime returns y years, m months, d days string
