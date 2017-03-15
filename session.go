@@ -443,7 +443,7 @@ func (s *Session) ConfDel(stanza *xmpp.MUCPresence) (deleted Conference, err err
 	if conf, ok := s.conferences[bareJID]; ok {
 		deleted = conf
 		delete(s.conferences, conf.JID)
-		log.Printf("Conference %q deleted!", conf.JID)
+		log.Printf("Conference %q has been deleted!", conf.JID)
 		return
 	}
 	return Conference{}, errors.New("No such conference! " + bareJID)

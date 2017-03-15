@@ -51,8 +51,14 @@ func main() {
 	if len(results) <= 3 {
 		res = startPage % 4
 	}
+
+	UnescapedURL, err := url.QueryUnescape(results[res].URL)
+	if err != nil {
+		UnescapedURL = results[res].URL
+	}
+
 	fmt.Printf("%s\n%s\n%s\n", stripHTML(results[res].Title),
-		results[res].URL,
+		UnescapedURL,
 		stripHTML(results[res].Content))
 }
 
@@ -92,6 +98,9 @@ func usage(lang string) {
 func stripHTML(s string) string {
 	s = strings.Replace(s, "<b>", "", -1)
 	s = strings.Replace(s, "</b>", "", -1)
+	s = strings.Replace(s, "&#34;", "\"", -1)
+	s = strings.Replace(s, "&#39;", "'", -1)
+	s = strings.Replace(s, "&amp; ", "& ", -1) // NB space after
 	// s = stirngs.Replace(s, "<br />", "\n", -1)
 	// s = strings.Replace(s, "<br/>", "\n", -1)
 

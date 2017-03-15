@@ -132,10 +132,20 @@ $ export EXALC='ivy -e=true'
 Show how much time to supplied date
 <pre>
 !! when 2017-05-16
-2 months, 17 days, 2 hours
+&lt;jagod&gt; 2 months, 1 day, 2 hours
 </pre>
 
 ---------------------------------------------------------------------
+WTF - Acronym collection lookup a famous nix* utility now in pure Go
+<pre>
+!! wtf [is] foss
+&lt;jagod&gt; Free and Open Source Software
+</pre>
+
+it skips an optional 'is' just as the original `wtf` does.
+
+---------------------------------------------------------------------
+
 
 Automatically unescape urls in messsages. You can comment out the 
 following line in config:

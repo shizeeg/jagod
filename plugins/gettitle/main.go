@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -45,6 +46,13 @@ func main() {
 		usage(lang)
 		return
 	}
+
+	if msg, err := url.QueryUnescape(link); err == nil {
+		if strings.Count(link, "%") > 3 {
+			fmt.Print(msg)
+		}
+	}
+
 	res, err := http.Get(link)
 
 	contType = res.Header.Get("Content-Type")

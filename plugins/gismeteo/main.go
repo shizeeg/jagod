@@ -85,7 +85,6 @@ func main() {
 	}
 }
 
-// City struct represent a city info with code and textual representation
 type City struct {
 	Code int
 	Name string
@@ -497,4 +496,5 @@ func stripHTML(str string) string {
 			return fmt.Sprintf("%s", out)
 		}
 	}
+	return fmt.Sprintf("%s", out)
 }
